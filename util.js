@@ -15,7 +15,6 @@ function toHex(int, len=8) {
 module.exports.toHex = toHex;
 
 /* checking functions */
-
 	function isBlockValid (block) {
 		return isBlockHashValid(block.hash, block.difficulty)
 			&& block.hash === calcBlockHash(block)
@@ -43,7 +42,6 @@ module.exports.toHex = toHex;
 	module.exports.isBlockHashValid = isBlockHashValid;
 	module.exports.isMrklHashValid = isMrklHashValid;
 	module.exports.isHashSmallerThan = isHashSmallerThan;
-
 
 /* hasing functions */
 	function calcBlockHash (block) {
