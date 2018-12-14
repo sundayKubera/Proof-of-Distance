@@ -1,17 +1,14 @@
+const util = require("./util.js");
+
 function Coord (hash, structure=false) {
 	let coord = [];
 
 	structure = structure || Coord.structure;
 
-	for (let start=0, i=0; i<structure.length; i++) {
-		let part = hash.substr(start, structure[i]);
-		start += structure[i];
+	coord = util.decode(hash, structure);
+	coord.shift();//drop first(zeros)
 
-		if (i > 0)	//skip first(zeros)
-			coord.push( parseInt(part, 16) || 0 );
-	}
-
-	return coord;
+	return coord.map(val => parseInt(val,16) || 0);
 };
 	Coord.structure = [8+8,8,8,8,8,8,8];	//skip first(zeros), sum = 64
 	//Coord.structure = [4+12,12,12,12,12];
