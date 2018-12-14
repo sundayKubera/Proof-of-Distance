@@ -1,3 +1,4 @@
+const sha256 = require('./sha256.js');
 
 function toHex(int, len=8) {
 	let hex = int.toString(16);
@@ -12,13 +13,41 @@ function toHex(int, len=8) {
 };
 
 function isBlockValid (block) {
-	return block.hash == block.calcHash() && isHashValid (block.hash, block.difficulty);
+	return isBlockHashValid(block.hash, block.difficulty)
+		&& block.hash === calcBlockHash(block)
+		&& isMrklHashValid(block.mrkl_hash, block.txs);
 };
 
-function isHashValid (hash, difficulty) {
+function isBlockHashValid (hash, difficulty) {
 	return hash.substr(0, difficulty) === toHex(0,difficulty)
 };
 
+function isMrklHashValid(mrkl_hash, txs) {
+	return mrkl_hash === calcMrklHash(txs);
+};
+
+function calcBlockHash (block) {
+	let base = block.toArray().join("");
+	return sha256(base);
+};
+
+function calcMrklHash (txs) {
+	if (txs.length % 2 !== 0)	throw `calcMrklHash : txs.length is not even`;
+
+	let hashes = txs.map(tx => sha256(tx));
+	while (hashes.length > 1) {
+		let nextHashBuffer = [];
+		for (let i=0; i<hashes.length; i+=2)
+			nextHashBuffer.push( sha256(hashes[i]+hashes[i+1]) );
+		hashes = nextHashBuffer;
+	}
+	return hashes[0];
+};
+
 module.exports.toHex = toHex;
+module.exports.sha256 = sha256;
 module.exports.isBlockValid = isBlockValid;
-module.exports.isHashValid = isHashValid;
+module.exports.isBlockHashValid = isBlockHashValid;
+module.exports.isMrklHashValid = isMrklHashValid;
+module.exports.calcBlockHash = calcBlockHash;
+module.exports.calcMrklHash = calcMrklHash;

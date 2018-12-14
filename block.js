@@ -1,69 +1,70 @@
-const sha256 = require('./sha256.js');
 const util = require('./util.js'),
 	toHex = util.toHex;
 
 class Block {
-
-/*
-	this.hash = "";
-
-	this.index = 1;			//int
-	this.version = 1;		//int
-	this.prev_hash = "";	//prev blocks hash
-	//this.mrkl_root = "";	//
-	this.timestamp = 0;		//block created time
-	this.difficulty = 8;	//count of zeros
-	this.nonce = 0;			//what ever intz
-
-	//this.txs = [];
-	//this.mrkl_tree = [];
-*/
-	constructor (index, version, prev_hash, timestamp, difficulty, nonce, hash) {
+	
+	constructor (index, version, prev_hash, mrkl_hash, timestamp, difficulty, txs, nonce, hash) {
 
 		this.hash = hash;
 
 		this.index = index;
 		this.version = version;
+
 		this.prev_hash = prev_hash;
+		this.mrkl_hash = mrkl_hash;
+
 		this.timestamp = timestamp;
 		this.difficulty = difficulty;
+
+		this.txsLength = txs.length;
+		this.txsSize = JSON.stringify(txs).length;
+
 		this.nonce = nonce;
+
+		this.txs = txs;
 	}
 
-	calcHash () {
-		let base = [toHex(this.index), toHex(this.version), this.prev_hash, toHex(this.timestamp), toHex(this.difficulty), toHex(this.nonce) ].join("");
-		return sha256(base);
+	toArray () {
+		return [
+			toHex(this.index),
+			toHex(this.version),
+
+			this.prev_hash,
+			this.mrkl_hash,
+
+			toHex(this.timestamp),
+			toHex(this.difficulty),
+
+			toHex(this.txsLength),
+			toHex(this.txsSize),
+			
+			toHex(this.nonce)
+		];
+	}
+
+	toString () {
+		return JSON.stringify(this);
 	}
 };
 
-	Block.Miner = class BlockMiner {
+	Block.MineHelper = class BlockMineHelper extends Block {
 
-		constructor (index, version, prev_hash, timestamp, difficulty) {
-
-			this.index = index;
-			this.version = version;
-			this.prev_hash = prev_hash;
-			this.timestamp = timestamp;
-			this.difficulty = difficulty;
-
-			this.set = [
-				toHex(this.index),
-				toHex(this.version),
-				this.prev_hash,
-				toHex(this.timestamp),
-				toHex(this.difficulty),
-			].join("");
-
+		constructor (index, version, prev_hash, timestamp, difficulty, txs=[]) {
+			super(index, version, prev_hash, util.calcMrklHash(txs), timestamp, difficulty, txs, 0, "");
 		}
 
 		mine (nonce) {
-			let hash = sha256(this.set+toHex(nonce));
-			
-			if (util.isHashValid(hash, this.difficulty))
-				return new Block(this.index, this.version, this.prev_hash, this.timestamp, this.difficulty, nonce, hash);
+			this.nonce = nonce;
+
+			let hash = util.calcBlockHash(this), t = this;
+			if (util.isBlockHashValid(hash, this.difficulty))
+				return new Block(t.index, t.version, t.prev_hash, t.mrkl_hash, t.timestamp, t.difficulty, t.txs, nonce, hash);
 			return false;
 		}
-	};
 
+		toString () {
+			return `<MineHelper ${JSON.stringify(this)}>`;
+		}
+	};
 
 module.exports = Block;
