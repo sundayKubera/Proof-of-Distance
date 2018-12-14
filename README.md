@@ -1,7 +1,7 @@
 ### Proof-of-Distance
-give "random name" to each "node"
-check distance of "miner node name" and "block hash"
-choose the smallest block
+give "random name" to each "node"<br/>
+check distance of "miner node name" and "block hash"<br/>
+choose the smallest block<br/>
 
 ### TimeLine
 1. new block "Block A" created
