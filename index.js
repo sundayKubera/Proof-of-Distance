@@ -85,7 +85,6 @@ const WS = require('ws');
 			this.server = new WS.Server({port: this.port});
 
 			this.server.on('connection', socket => {
-				Protocol.PingPong.ServerSide(socket);
 
 				socket.once('message', addr => {
 					this.addSocket(addr, socket);
@@ -101,8 +100,6 @@ const WS = require('ws');
 		connectTo (addr) {
 			const client = new WS(addr);
 			this.addSocket(addr, client, true);
-
-			Protocol.PingPong.ClientSide(client,addr);
 
 			client.on('open', e => {
 				client.send(this.address);
@@ -136,7 +133,7 @@ const WS = require('ws');
 		},
 
 		addrs () {
-			return Object.keys(sockets);
+			return Object.keys(this.sockets);
 		},
 	};
 
@@ -170,38 +167,6 @@ const WS = require('ws');
 				//throw e;
 			}
 		},
-
-		PingPong:{
-			interval:1000*60,
-			ServerSide (socket) {
-				socket.isAlive = true;
-				socket.on('pong',e => socket.isAlive = true);
-				socket.ping_pong_interval = setInterval(e => {
-					if (!socket.isAlive) {
-						socket.emitClose();
-						socket.terminate();
-						clearInterval(socket.ping_pong_interval);
-					} else {
-						socket.isAlive = false;
-						socket.ping(e => 0);
-					}
-				}, this.interval);
-			},
-
-			ClientSide (client) {
-				client.on('open', PingPong);
-				client.on('ping', PingPong);
-				client.on('close', e => clearTimeout(client.ping_pong_timeout));
-
-				function PingPong() {
-					clearTimeout(client.ping_pong_timeout);
-					client.ping_pong_timeout = setTimeout(e => {
-						client.emitClose();
-						client.terminate();
-					}, this.interval);
-				}
-			},
-		}
 	};
 
 const express = require('express');
