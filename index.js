@@ -30,6 +30,8 @@ function mineWithData(index, version, prev_hash, difficulty, trx=[]) {
 	}
 	return false;
 };
+
+
 /*const ws = require('ws');
 const p2p_port = process.argv[2] || 8888;
 
@@ -48,6 +50,14 @@ server.on('connection', socket => {
 
 });
 
+
+if (p2p_port != 8888) {
+	let client = new ws('ws://localhost:8088');
+	ClientSidePingPong(client);
+}
+
+console.log(p2p_port);
+
 const ping_pong_interval_time = 1000*60
 
 function ServerSidePingPong(self, socket) {
@@ -61,7 +71,7 @@ function ServerSidePingPong(self, socket) {
 		self.isAlive = false;
 		ws.ping(e => 0);
 	},ping_pong_interval_time);
-}
+};
 
 function ClientSidePingPong(client) {
 	client.on('open', PingPong);
@@ -74,54 +84,61 @@ function ClientSidePingPong(client) {
 		clearTimeout(this.ping_pong_timeout);
 		this.ping_pong_timeout = setTimeout(e => this.terminate(), ping_pong_interval_time)
 	}
-}
-
-if (p2p_port != 8888) {
-	let client = new ws('ws://localhost:8088');
-	ClientSidePingPong(client);
-}
-
-console.log(p2p_port);*/
+};*/
 
 const express = require('express');
 const app = express();
 
-const chain = new Chain();
-const wallet = new Wallet();
+const BlockChain = {
+	chain:new Chain(),
+	wallet:new Wallet(),
 
-app.get('/wallet/private', function (req, res) {
-	res.send({
-		addr:wallet.getAddress(),
-		public:wallet.getPublicKey(),
-		private:wallet.save(),
-	});
-});
+	blocks () {
+		return this.chain.blocks
+	},
+	block (i) {
+		return this.chain.blocks[i]
+	},
 
-app.get('/wallet', function (req, res) {
-	res.send({
-		addr:wallet.getAddress(),
-		public:wallet.getPublicKey()
-	});
-});
+	mine () {
+		let transaction = new Transaction.Builder.Transmission(util.toHex(0,64), this.wallet.getAddress(), 100).sign(this.wallet)+"";
 
-app.get('/mine', function (req, res) {
-	let transaction = new Transaction.Builder.Transmission(util.toHex(0,64), wallet.getAddress(), 100).sign(wallet)+"";
+		let block;
 
-	let block;
+		if (this.chain.blocks.length == 0)
+			block = mineGenesis([transaction,"padding"]);
+		else
+			block = mineWithBlock(this.chain.topBlock, [transaction,"padding"]);
 
-	if (chain.blocks.length == 0)
-		block = mineGenesis([transaction,"padding"]);
-	else
-		block = mineWithBlock(chain.topBlock, [transaction,"padding"]);
+		return {
+			isAdded:this.chain.newBlock(block),
+			block
+		}
+	},
 
-	res.send({
-		isAdded:chain.newBlock(block),
-		block
-	});
-});
+	walletInfo (private=false) {
+		if (private) {
+			return {
+				addr:this.wallet.getAddress(),
+				public:this.wallet.getPublicKey(),
+				private:this.wallet.save()
+			};
+		}
 
-app.get('/blocks', function (req, res) {
-	res.send(chain.blocks);
-});
+		return {
+			addr:this.wallet.getAddress(),
+			public:this.wallet.getPublicKey()
+		};
+	}
+};
+
+/* wallet & chain & blocks */
+	app.get('/wallet/private', (req, res) => res.send(BlockChain.walletInfo(true)));
+	app.get('/wallet', (req, res) => res.send(BlockChain.walletInfo()));
+
+	app.get('/blocks/:index', (req, res) => res.send(BlockChain.block(req.params.index)));
+	app.get('/blocks', (req, res) => res.send(BlockChain.blocks()));
+
+	app.get('/mine', (req, res) => res.send(BlockChain.mine()));
 
 app.listen(80,'localhost');
