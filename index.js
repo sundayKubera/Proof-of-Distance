@@ -104,7 +104,10 @@ const WS = require('ws');
 
 			Protocol.PingPong.ClientSide(client,addr);
 
-			client.on('open', e => client.send(this.address));
+			client.on('open', e => {
+				client.send(this.address);
+				Protocol.messager(client, 'chain-request');
+			});
 			client.on('message', Protocol.handler.bind(Protocol, client));
 			client.on('close', e => this.removeSocket(addr, client, true));
 		},
@@ -134,12 +137,38 @@ const WS = require('ws');
 
 		addrs () {
 			return Object.keys(sockets);
-		}
+		},
 	};
 
 	const Protocol = {
-		handler (socket, message) {
+		'chain-request':{
+			messager () { return {}; },
+			handler (socket, msg) { Protocol.messager(socket, 'chain-response'); }
+		},
+		'chain-response':{
+			messager () { return {blocks:BlockChain.blocks().map(block => block+"")} },
+			handler (socket, msg) { console.log(msg); }
+		},
 
+		messager (socket, type,...args) {
+			if (!Protocol[type])	return "";
+
+			let msg = Protocol[type].messager(...args);
+			msg.timestamp = Date.now();
+			msg.type = type;
+
+			socket.send( JSON.stringify(msg) );
+		},
+
+		handler (socket, msg_string) {
+			try {
+				let msg = JSON.parse(msg_string);
+				if (!Protocol[msg.type])	return false;
+
+				Protocol[msg.type].handler(socket, msg);
+			} catch (e) {
+				//throw e;
+			}
 		},
 
 		PingPong:{
@@ -217,8 +246,9 @@ const express = require('express');
 SocketServer.listen();
 HttpServer.listen();
 
-if ( process.argv[2] )
+if ( process.argv[2] ) {
 	SocketServer.connectTo( `ws://localhost:`+process.argv[2] );
+}
 
 
 function getIps() {
@@ -232,6 +262,6 @@ function getIps() {
 	}
 
 	return ips;
-}
+};
 
-function getIp() { return getIps()[0]; }
+function getIp() { return getIps()[0]; };
