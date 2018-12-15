@@ -15,7 +15,6 @@ class Transaction {
 		return JSON.stringify(Transaction.encode(this,true));
 	}
 };
-	Transaction.version = 1;
 	/* encode & decode */
 		Transaction.encode = function (transaction,include_hash=false) {//Object => Array
 			if (include_hash)
@@ -55,7 +54,7 @@ class TransactionBuilder {
 			address:	wallet.getAddress(),
 			publicKey:	wallet.getPublicKey(),
 			data:		data_json,
-			time:		Date.now()
+			timestamp:	Date.now()
 		}, false);
 		let hash = util.sha256(JSON.stringify(transaction_json));
 
@@ -65,16 +64,18 @@ class TransactionBuilder {
 };
 
 
-/*class Transmission extends Transaction {
+class TransmissionBuilder extends TransactionBuilder {
 	constructor (sendAddr, 	receiveAddr, amount) {
 		super();
+		this.data.type = "transmission";
 		this.data.receiveAddr = receiveAddr;
 		this.data.sendAddr = sendAddr;
 		this.data.amount = amount;
 	}
 }
-	Transmission.version = 1;*/
 
 module.exports = Transaction;
-module.exports.TransactionBuilder = TransactionBuilder;
-//module.exports.Transmission = Transmission;
+module.exports.Builder = TransactionBuilder;
+module.exports.Builder.Transmission = TransmissionBuilder;
+
+module.exports.verseion = 1;
