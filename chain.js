@@ -1,3 +1,4 @@
+const Block = require('./block.js');
 const util = require('./util.js');
 
 class Chain {
@@ -19,7 +20,7 @@ class Chain {
 			this.blocks.push(block);
 			return true;
 		} else {
-			if (this.topBlock.index+1 === block.index && this.topBlock.hash === block.prev_hash && util.isBlockValid(block)) {
+			if (this.topBlock.index+1 === block.index && this.topBlock.hash === block.prev_hash && Block.isBlockHeadValid(block)) {
 				this.blocks.push(block);
 				return true;
 			}
