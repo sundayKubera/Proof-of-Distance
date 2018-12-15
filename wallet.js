@@ -27,7 +27,7 @@ class Wallet {
 	}
 
 	save () {
-		return this.getPrivatePem().replace(/\n/gi,"").replace(/^-----BEGIN PRIVATE KEY-----/gi,"").replace(/-----END PRIVATE KEY-----$/gi,"");
+		return this.getPrivatePem().replace(/\n/gi,"").replace(/^-----BEGIN EC PRIVATE KEY-----/gi,"").replace(/-----END EC PRIVATE KEY-----$/gi,"");
 	}
 };
 	Wallet.getAddressFromPublicKey = function (publicKey) {
