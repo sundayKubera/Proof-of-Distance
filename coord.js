@@ -5,8 +5,13 @@ function Coord (hash, structure=false) {
 
 	structure = structure || Coord.structure;
 
-	coord = util.decode(hash, structure);
-	coord.shift();//drop first(zeros)
+	for (let i=0, start=0; i<structure.length; i++) {
+		let part = hash.substr(start, structure[i]);
+
+		if (i > 0)	coord.push( parseInt(part, 16) || 0 );
+		
+		start += structure[i];
+	}
 
 	return coord.map(val => parseInt(val,16) || 0);
 };
