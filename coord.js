@@ -23,3 +23,4 @@ function Coord (hash, structure=false) {
 	};
 
 module.exports = Coord;
+module.exports.version = 1;

@@ -12,36 +12,22 @@ class Wallet {
 		this.ECDH = ec_pem(this.ECDH, 'secp521r1');
 	}
 
-	getAddress () { return Wallet.getAddress(this.getPublicKey()); }
-
 	getPublicPem () { return this.ECDH.encodePublicKey(); }
 	getPrivatePem () { return this.ECDH.encodePrivateKey(); }
 
-	getPublicKey () {
-		return this.getPublicPem().replace(/\n/gi,"").replace(/^-----BEGIN PUBLIC KEY-----/gi,"").replace(/-----END PUBLIC KEY-----$/gi,"");
-	}
+	getAddress () { return Wallet.getAddressFromPublicKey(this.getPublicKey()); }
+
+	getPublicKey () { return this.getPublicPem().replace(/\n/gi,"").replace(/^-----BEGIN PUBLIC KEY-----/gi,"").replace(/-----END PUBLIC KEY-----$/gi,""); }
 
 	getSign (data) {
 		const sign = crypto.createSign('SHA256');
 		sign.write(data);
 		sign.end();
-		return sign.sign( this.getPrivatePem(), "base64");
-	}
-
-	sign (data) {
-		let base = [
-			data,
-			this.getAddress(),
-			this.getSign(data),
-			this.getPublicKey(),
-		];
-
-		let encoded = util.encode(base);
-		return util.encode([...base, util.sha256(encoded)]);
+		return sign.sign( this.getPrivatePem(), "hex");
 	}
 
 	save () {
-		return this.getPrivatePem().replace(/\n/gi,"").replace(/^-----BEGIN PUBLIC KEY-----/gi,"").replace(/-----END PUBLIC KEY-----$/gi,"");
+		return this.getPrivatePem().replace(/\n/gi,"").replace(/^-----BEGIN EC PRIVATE KEY-----/gi,"").replace(/-----END EC PRIVATE KEY-----$/gi,"");
 	}
 };
 	Wallet.getAddressFromPublicKey = function (publicKey) {
@@ -66,17 +52,9 @@ class Wallet {
 		const verify = crypto.createVerify('SHA256');
 		verify.update(data);
 		verify.end();
-		return verify.verify(publicPem, sign, "base64");
-	};
-
-	Wallet.verifyTransaction = function (transaction) {
-		let [data, address, sign, publicKey, hash] = util.decode(transaction);
-
-		if (util.sha256(util.encode([data,sign,publicKey])) !== hash)			return false;	//it attacked by someone!!!
-		if (!Wallet.verifySign(data, sign, Wallet.publicKey2Pem(publicKey)))	return false;	//it is fake!!!
-		if (Wallet.getAddressFromPublicKey(publicKey) !== address)				return false;	//it is fake!!!
-
-		return true;
+		return verify.verify(publicPem, sign, "hex");
 	};
 
 module.exports = Wallet;
+
+module.exports.verseion = 1;
