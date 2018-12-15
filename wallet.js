@@ -54,5 +54,7 @@ class Wallet {
 		verify.end();
 		return verify.verify(publicPem, sign, "hex");
 	};
-	
+
 module.exports = Wallet;
+
+module.exports.verseion = 1;

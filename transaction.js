@@ -78,4 +78,4 @@ module.exports = Transaction;
 module.exports.Builder = TransactionBuilder;
 module.exports.Builder.Transmission = TransmissionBuilder;
 
-module.exports.verseion = 1;
+module.exports.version = 1;

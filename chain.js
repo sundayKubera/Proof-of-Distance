@@ -89,3 +89,5 @@ class Chain {
 };
 
 module.exports = Chain;
+
+module.exports.version = 1;

@@ -44,7 +44,6 @@ class Block {
 		return JSON.stringify(Block.encode(this,include_txs));
 	}
 };
-	Block.version = 1;
 	/* encode & decode */
 		Block.encode = function (block,include_txs=false) {//Object => Array
 			let result = [block.hash, block.index, block.version, block.prev_hash, block.mrkl_hash, block.timestamp, block.difficulty, block.txsLength, block.txsSize, block.nonce];
@@ -132,3 +131,5 @@ class Block {
 	};
 
 module.exports = Block;
+
+module.exports.version = 1;
