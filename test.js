@@ -1,7 +1,8 @@
-const hash = require('./sha256.js');
-const coord = require('./coord.js');
 
 function randomNameDistanceTest () {
+	const hash = require('./sha256.js');
+
+	const coord = require('./coord.js');
 
 	let randoms = new Array(500).fill(0).map(e => Math.random()*1000+""),
 		hashes = randoms.map(random => hash(random)),
@@ -34,6 +35,8 @@ function randomNameDistanceTest () {
 };
 
 function miningTimeTest () {// about 8zero to 10zero is good enough
+	const hash = require('./sha256.js');
+
 	const minute = 1000*60;
 
 	let startTime = Date.now(),
@@ -51,3 +54,16 @@ function miningTimeTest () {// about 8zero to 10zero is good enough
 
 	setTimeout(miningTimeTest,minute/6);
 };
+
+function chainWorkTest() {
+	const BlockChain = require('./blockchain.js');
+
+	console.log(BlockChain.mine());
+	
+	console.log(BlockChain.mine());
+
+	console.log(BlockChain.blocks());
+	
+};
+
+chainWorkTest();
