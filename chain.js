@@ -7,24 +7,34 @@ class Chain {
 		this.blocks = [];
 	}
 
+	get topBlock () {
+		return this.blocks[this.blocks.length-1];
+	}
+
 	block (i) {
 		return this.blocks[i-1];
 	}
 
 	isChainValid (chain) {
+		let i = 0, prev_hash = "";
 		for (let block of chain) {
-			if (!util.isBlockValid(block))
-				return false;
+			if (!Block.isBlockValid(block))				return false;
+			if (i > 0 && block.prev_hash !== prev_hash)	return false;
+			prev_hash = block.hash;
+			i++;
 		}
 		return true;	
 	}
 	
 	isSameChain (chain) {
-		if (chain[0].index === 1)	return chain[0].hash === this.block(1).hash;
-		else				return chain[0].prev_hash === this.block(chain[0].index).prev_hash;
+		if (this.blocks.length === 0)	return true;
+		else if (chain[0].index === 1)	return chain[0].hash === this.block(1).hash;
+		else							return chain[0].prev_hash === this.block(chain[0].index).prev_hash;
 	}
 	
 	isBetterChain (chain) {
+		if (this.blocks.length === 0)	return true;
+
 		let score = 0;
 		for (let newBlock of chain) {
 			let block = this.block(newBlock.index);
@@ -43,7 +53,7 @@ class Chain {
 	}
 	
 	replaceChain (chain) {
-		this.blocks = [...chain];
+		this.blocks = chain;
 	}
 	
 	newChain (chain) {
