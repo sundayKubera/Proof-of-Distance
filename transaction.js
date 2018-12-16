@@ -19,7 +19,7 @@ class Transaction {
 		Transaction.encode = function (transaction,include_hash=false) {//Object => Array
 			if (include_hash)
 				return [transaction.hash, transaction.sign, transaction.address, transaction.publicKey, transaction.data, transaction.timestamp];
-			return [transaction.sign, transaction.address, transaction.publicKey, transaction.data, transaction.timestamp];
+			return [transaction.address, transaction.publicKey, transaction.data, transaction.timestamp];
 		};
 		Transaction.decode = function (transaction) {//(Array | String) => Object
 			if (transaction+"" === transaction)
@@ -36,7 +36,7 @@ class Transaction {
 
 			if (util.sha256(JSON.stringify(Transaction.encode(tx, false))) !== tx.hash)
 																							return false;	//it attacked by someone!!!
-			if (!Wallet.verifySign(tx.data, tx.sign, Wallet.publicKey2Pem(tx.publicKey)))	return false;	//it is fake!!!
+			if (!Wallet.verifySign(tx.hash, tx.sign, Wallet.publicKey2Pem(tx.publicKey)))	return false;	//it is fake!!!
 			if (Wallet.getAddressFromPublicKey(tx.publicKey) !== tx.address)				return false;	//it is fake!!!
 
 			return true;
@@ -50,14 +50,16 @@ class TransactionBuilder {
 	sign (wallet) {
 		let data_json = JSON.stringify(this.data);
 		let transaction_json = Transaction.encode({
-			sign:		wallet.getSign(data_json),
+			//sign:		wallet.getSign(data_json),
 			address:	wallet.getAddress(),
 			publicKey:	wallet.getPublicKey(),
 			data:		data_json,
 			timestamp:	Date.now()
 		}, false);
 		let hash = util.sha256(JSON.stringify(transaction_json));
+		let sign = wallet.getSign(hash);
 
+		transaction_json.unshift( sign );
 		transaction_json.unshift( hash );
 		return new Transaction(...transaction_json);
 	}
