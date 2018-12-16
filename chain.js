@@ -60,14 +60,6 @@ class Chain {
 		return this.blocks[0].hash === chain[0].hash;
 	}
 
-	isChainValid (chain) {
-		for (let block of chain) {
-			if (!util.isBlockValid(block))
-				return false;
-		}
-		return true;	
-	}
-
 	newChain (chain) {
 		if (chain.length === 0)			return false;
 		if (!this.isMyChain(chain))		return false;
@@ -86,6 +78,38 @@ class Chain {
 		}
 
 	}*/
+	
+
+	isChainValid (chain) {
+		for (let block of chain) {
+			if (!util.isBlockValid(block))
+				return false;
+		}
+		return true;	
+	}
+	
+	isSameChain (chain) {
+		if (chain[0].index === 0)	return chain[0].hash === this.blocks[0].hash;
+		else				return chain[0].prev_hash === this.blocks[chain[0].index-1].prev_hash;
+	}
+	
+	isBetterChain (chain) {
+		for (let block of chain) {
+			//if (block.hash)	
+		}
+	}
+	
+	replaceChain (chain) {
+	
+	}
+	
+	newChain (chain) {
+		if (!this.isChainValid(chain))	return false;
+		if (!this.isSameChain(chain))	return false;
+		if (!this.isBetterChain(chain))	return false;
+		this.replaceChain(chain);
+		return true;
+	}
 };
 
 module.exports = Chain;
