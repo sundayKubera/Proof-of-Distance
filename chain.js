@@ -94,13 +94,16 @@ class Chain {
 	}
 	
 	isBetterChain (chain) {
+		let score = 0;
 		for (let block of chain) {
-			//if (block.hash)	
+			let isBlockBig = util.isHashSmallerThan(this.blocks[block.index-1].hash, block.hash);
+			score += isBlockBig ? -1 : 0;
 		}
+		return score > 0;
 	}
 	
 	replaceChain (chain) {
-	
+		this.blocks = chain;
 	}
 	
 	newChain (chain) {
