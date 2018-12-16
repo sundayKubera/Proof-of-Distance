@@ -79,6 +79,9 @@ class Chain {
 
 	}*/
 	
+	block (i) {
+		return this.blocks[i-1];
+	}
 
 	isChainValid (chain) {
 		for (let block of chain) {
@@ -89,21 +92,30 @@ class Chain {
 	}
 	
 	isSameChain (chain) {
-		if (chain[0].index === 0)	return chain[0].hash === this.blocks[0].hash;
-		else				return chain[0].prev_hash === this.blocks[chain[0].index-1].prev_hash;
+		if (chain[0].index === 0)	return chain[0].hash === this.block(1).hash;
+		else				return chain[0].prev_hash === this.block(chain[0].index).prev_hash;
 	}
 	
 	isBetterChain (chain) {
 		let score = 0;
-		for (let block of chain) {
-			let isBlockBig = util.isHashSmallerThan(this.blocks[block.index-1].hash, block.hash);
-			score += isBlockBig ? -1 : 0;
+		for (let newBlock of chain) {
+			let block = this.block(newBlock.index);
+			
+			if (!block) {
+				score++;
+				continue;
+			} else if (block.hash === newBlock.hash) {
+				continue;
+			} else {
+				let isNewBlockBig = util.isHashSmallerThan(block.hash, newBlock.hash);
+				score += isNewBlockBig ? -1 : 1;
+			}
 		}
 		return score > 0;
 	}
 	
 	replaceChain (chain) {
-		this.blocks = chain;
+		this.blocks = [...chain];
 	}
 	
 	newChain (chain) {
