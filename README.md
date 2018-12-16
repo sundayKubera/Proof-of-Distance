@@ -11,6 +11,6 @@ choose the smallest block<br/>
 5. now "some one" became a node ("node name" = hash("Block C".header + "Block B".header + hash("Request A"))) //<-- something like this
 
 ### ToDo
-1. improve chain choose algorithm
+1. improve chain choose algorithm(Done)
 2. add distance calc to block
 3. add code update transaction
