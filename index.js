@@ -50,7 +50,7 @@ const util = require('./util.js');
 				block = mineWithBlock(this.chain.topBlock, [transaction,"padding"]);
 
 			return {
-				isAdded:this.chain.newBlock(block),
+				isAdded:this.chain.newChain([block]),
 				block
 			}
 		},
