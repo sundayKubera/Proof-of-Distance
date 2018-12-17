@@ -5,7 +5,7 @@ const Mine = {
 	wallet : null,
 
 	mineGenesis(trx) {
-		return this.mineWithData(1, 1, util.toHex(0,64), trx);
+		return this.mineWithData(0, 1, util.toHex(0,64), trx);
 	},
 
 	mineWithBlock(block, trx=[]) {
