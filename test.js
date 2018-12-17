@@ -70,4 +70,4 @@ function chainWorkTest() {
 	
 };
 
-randomNameDistanceTest();
+chainWorkTest();

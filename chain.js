@@ -32,7 +32,7 @@ class Chain {
 		else							return chain[0].prev_hash === this.block(chain[0].index).prev_hash;
 	}
 	
-	isBetterChain (chain) {
+	/*isBetterChain (chain) {
 		if (this.blocks.length === 0)	return true;
 
 		let score = 0;
@@ -50,6 +50,32 @@ class Chain {
 			}
 		}
 		return score > 0;
+	}*/
+
+	isBetterChain (chain) {
+		if (this.blocks.length === 0)	return true;
+
+		let longerLength = Math.max(chain.length, this.blocks.length);
+		let newChainScore = this.scoreChain(chain);
+		let currChainScore = this.scoreChain(this.blocks);
+
+		if (newChainScore < currChainScore)												return true;
+		else if (newChainScore == currChainScore && chain.length > this.blocks.length)	return true;
+		return false;
+	}
+
+	scoreChain (chain, longerLength=0) {
+		let resultScore = 0;
+
+		for (let block of chain) {
+			let score = block.hash.length - block.hash.replace(/^0*/i,"").length;
+			resultScore += score;
+		}
+
+		if (chain.length < longerLength)
+			resultScore += resultScore/chain.length * (longerLength-chain.length);
+
+		return resultScore;
 	}
 	
 	replaceChain (chain) {
