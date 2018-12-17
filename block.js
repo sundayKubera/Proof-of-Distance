@@ -20,7 +20,7 @@ class Block {
 
 		Block.isPropertiesValid(this);
 
-		if (txs !== false) {
+		if (txs) {
 			if (!this.setTransactions(txs))
 				throw new Error(`Block : unValidBlock : 'transactions' or 'mrkl hash' is not valid`);
 		}

@@ -18,7 +18,7 @@ class Chain {
 	isChainValid (chain) {
 		let i = 0, prev_hash = "";
 		for (let block of chain) {
-			if (!Block.isBlockValid(block))				return false;
+			if (!Block.isBlockHeadValid(block))			return false;
 			if (i > 0 && block.prev_hash !== prev_hash)	return false;
 			prev_hash = block.hash;
 			i++;
@@ -38,8 +38,10 @@ class Chain {
 
 	itHasMoreTransactionData (chain) {
 		for (let block of chain) {
-			if (block.txs.length > this.block(block.index).txs.length)
+			if (block.txs.length > this.block(block.index).txs.length) {
+				if (!Block.isBlockValid(block))	return false;
 				return true;
+			}
 		}
 		return false;
 	}
@@ -90,6 +92,11 @@ class Chain {
 	}
 	
 	newChain (chain) {
+		if (typeof chain === "string")		chain = JSON.parse(chain);
+		if (!(chain[0] instanceof Block))	chain = chain.map(block => Block.encode(block));
+
+		if (chain.length === 0)				return false;
+
 		if (this.isCompleteSameChain(chain)) {
 			if (this.itHasMoreTransactionData(chain))
 				return this.replaceChain(chain);

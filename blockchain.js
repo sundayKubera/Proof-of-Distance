@@ -34,7 +34,12 @@ const util = require('./util.js');
 			if (data) {
 				this.addTransactions(data.removedTransactions);
 				this.removeTransactions(data.addedTransactions);
+
+				if (Mine.mining)
+					this.updateMiner();
+				return true;
 			}
+			return false;
 		},
 
 		updateMiner () {
@@ -46,13 +51,13 @@ const util = require('./util.js');
 				else							transactions.push("padding");
 			}
 
+			console.log("updateMiner");
 			if (this.chain.blocks.length == 0)	return Mine.mineGenesis(transactions);
 			else								return Mine.mineNextBlock(this.chain.topBlock, transactions);
 		},
 
 		onMine (block) {
 			this.newChain([block]);
-			this.updateMiner();
 			this.onOnMine(block);
 		},
 		onOnMine () {},
