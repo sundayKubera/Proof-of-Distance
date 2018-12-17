@@ -14,7 +14,7 @@ const Mine = {
 	isMining () { return this.mining; },
 
 	mineLoop () {
-		if (this.data.end) {
+		if (!this.data.end) {
 			try {
 				let block = this.data.miner.mine(this.data.nonce++, this.wallet);
 				if (block) {
@@ -22,26 +22,28 @@ const Mine = {
 					this.data.end = true;
 					this.onMine(this.data.block);
 				}
-			} catch (e) {}
+			} catch (e) {
+				console.error(e);
+			}
 		}
 		
 		setTimeout(this.mineLoop.bind(this),10);
 	},
 
-	mine (index, version, prev_hash, trx=[]) {
+	mine (index, version, prev_hash, txs=[]) {
 		this.data = {
 			nonce:0, end:false, block:null,
-			miner:new Block.Miner(index, version, prev_hash, trx)
+			miner:new Block.Miner(index, version, prev_hash, txs)
 		};
 		this.mineStart();
 	},
 
-	mineGenesis(trx) {
-		return this.mine(0, 1, util.toHex(0,64), trx);
+	mineGenesis(txs) {
+		return this.mine(0, 1, util.toHex(0,64), txs);
 	},
 
-	mineNextBlock(block, trx=[]) {
-		return this.mine(block.index+1, block.version, block.hash, trx);
+	mineNextBlock(block, txs=[]) {
+		return this.mine(block.index+1, block.version, block.hash, txs);
 	},
 
 	onMine () {},
