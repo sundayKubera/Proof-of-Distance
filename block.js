@@ -93,6 +93,32 @@ class Block {
 		Block.isBlockValid = function (block) {
 			return Block.isBlockHeadValid(block) && Block.isMrklHashValid(block.mrkl_hash, block.txs);
 		};
+		Block.isPropertiesValid = function (block, isMiner=false) {//ToDo : publicKey, sign check
+			if (!Number.isInteger(block.index))			throw new Error(`Block : isPropertiesValid : index must be a int`);
+			if (!Number.isInteger(block.version))		throw new Error(`Block : isPropertiesValid : version must be a int`);
+
+			if (typeof block.prev_hash !== "string")	throw new Error(`Block : isPropertiesValid : prev_hash must be a string`);
+			else if (block.prev_hash.length !== 64)		throw new Error(`Block : isPropertiesValid : prev_hash.length must be 64`);
+
+			if (typeof block.mrkl_hash !== "string")	throw new Error(`Block : isPropertiesValid : mrkl_hash must be a string`);
+			else if (block.mrkl_hash.length !== 64)		throw new Error(`Block : isPropertiesValid : mrkl_hash.length must be 64`);
+
+			if (!Number.isInteger(block.timestamp))		throw new Error(`Block : isPropertiesValid : timestamp must be a int`);
+			else if (block.timestamp > Date.now())		throw new Error(`Block : isPropertiesValid : timestamp can't bigger then 'Date.now()'`);
+
+			if (!Number.isInteger(block.txsLength))		throw new Error(`Block : isPropertiesValid : txsLength must be a int`);
+			if (!Number.isInteger(block.txsSize))		throw new Error(`Block : isPropertiesValid : txsSize must be a int`);
+			if (block.txsLength > block.txsSize)		throw new Error(`Block : isPropertiesValid : '[].length' can't bigger then 'JSON.stringify([]).length'`);
+
+			if (!Number.isInteger(block.nonce))			throw new Error(`Block : isPropertiesValid : nonce must be a int`);
+
+			if (isMiner) {
+				if (typeof block.hash !== "string")			throw new Error(`Block : isPropertiesValid : hash must be a string`);
+				else if (block.hash.length !== 64)			throw new Error(`Block : isPropertiesValid : hash.length must be 64`);	
+
+				//sign, publicKey
+			}
+		};
 		Block.isBlockHeadValid = function (block) {
 			return Block.isDifficultValid(block) && Block.isBlockHashValid(block) && Block.isSignValid(block);
 		};
