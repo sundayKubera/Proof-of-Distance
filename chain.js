@@ -43,29 +43,10 @@ class Chain {
 		}
 		return false;
 	}
-	
-	/*isBetterChain (chain) {
-		if (this.blocks.length === 0)	return true;
-
-		let score = 0;
-		for (let newBlock of chain) {
-			let block = this.block(newBlock.index);
-			
-			if (!block) {
-				score++;
-				continue;
-			} else if (block.hash === newBlock.hash) {
-				continue;
-			} else {
-				let isNewBlockBig = util.isHashSmallerThan(block.hash, newBlock.hash);
-				score += isNewBlockBig ? -1 : 1;
-			}
-		}
-		return score > 0;
-	}*/
 
 	isBetterChain (chain) {
-		if (this.blocks.length === 0)	return true;
+		if (this.blocks.length === 0)					return true;
+		if (chain[0].index === this.topBlock.index+1)	return true;
 
 		let longerLength = Math.max(chain.length, this.blocks.length);
 		let newChainScore = this.scoreChain(chain);
@@ -95,7 +76,8 @@ class Chain {
 			addedTransactions = [];
 
 		for (let block of chain) {
-			removedTransactions = removedTransactions.concat(this.blocks[block.index].txs.map(v => v+""));
+			if (this.blocks[block.index])
+				removedTransactions = removedTransactions.concat(this.blocks[block.index].txs.map(v => v+""));
 			addedTransactions = addedTransactions.concat(block.txs.map(v => v+""));
 
 			this.blocks[block.index] = block;
@@ -114,9 +96,9 @@ class Chain {
 			return false;
 		}
 
-		if (!this.isChainValid(chain))	return false;
+		if (!this.isChainValid(chain))		return false;
 		if (!this.isSameOriginChain(chain))	return false;
-		if (!this.isBetterChain(chain))	return false;
+		if (!this.isBetterChain(chain))		return false;
 		return this.replaceChain(chain);
 	}
 };
