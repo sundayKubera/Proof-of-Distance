@@ -62,12 +62,7 @@ function miningTimeTest () {// about 8zero to 10zero is good enough
 function chainWorkTest() {
 	const BlockChain = require('./blockchain.js');
 
-	console.log(BlockChain.mine());
-	
-	console.log(BlockChain.mine());
-
-	console.log(BlockChain.blocks());
-	
+	BlockChain.updateMiner();
 };
 
 chainWorkTest();
