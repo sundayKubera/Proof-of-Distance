@@ -210,6 +210,13 @@ class Block {
 			return hashes[0];
 		};
 
+	Block.calcDifficulty = function (prev_hash, walletAddress) {
+		if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
+		
+		let difficulty = Coord.distance(Coord(prev_hash), Coord(walletAddress));
+		return Math.sqrt(difficulty)/33333 /199 /40 /28;
+	};
+
 	/* check functions */
 		Block.isBlockValid = function (block) {
 			return Block.isBlockHeadValid(block) && Block.isMrklHashValid(block.mrkl_hash, block.txs);
@@ -228,11 +235,8 @@ class Block {
 			return mrkl_hash === Block.calcMrklHash(txs);
 		};
 		Block.isDifficultValid = function (block) {
-			let difficulty = Coord.distance(Coord(block.hash), Coord(Wallet.getAddressFromPublicKey(block.publicKey)));
-			difficulty = Math.sqrt(difficulty)/33333 /199 /40 /28;
-
-			if (difficulty < 0)		return true;
-			return parseInt(block.hash.substr(0,Math.ceil(difficulty)), 16) === 0;
+			let difficulty = Block.calcDifficulty(block.prev_hash, Wallet.getAddressFromPublicKey(block.publicKey));
+			return difficulty < 0 || parseInt(block.hash.substr(0,Math.ceil(difficulty)), 16) === 0;
 		};
 
 	Block.Miner = class BlockMiner {
@@ -264,10 +268,10 @@ class Block {
 			this.sign = wallet.getSign(this.hash);
 
 			if (Block.isBlockValid(this)) {
-				let difficulty = Coord.distance(Coord(this.hash), Coord(Wallet.getAddressFromPublicKey(this.publicKey)));
-				for (let i=0; i<5; i++)	difficulty = Math.sqrt(difficulty);
-				console.log(difficulty);
-				return Block.decode(Block.encode(this,Block.full_block_properties));
+				let difficulty = Block.calcDifficulty(this.hash, Wallet.getAddressFromPublicKey(this.publicKey));
+				console.log("next difficulty : ", difficulty);
+
+				return Block.decode(Block.encode(this, Block.full_block_properties));
 			}
 			return false;
 		}
