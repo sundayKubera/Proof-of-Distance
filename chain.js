@@ -33,7 +33,7 @@ class Chain {
 	isSameOriginChain (chain) {
 		if (this.blocks.length === 0)	return true;
 		else if (chain[0].index === 0)	return chain[0].hash === this.block(0).hash;
-		else							return chain[0].prev_hash === this.block(chain[0].index).prev_hash;
+		else							return chain[0].prev_hash === this.block(chain[0].index-1).hash;
 	}
 
 	itHasMoreTransactionData (chain) {
@@ -91,24 +91,33 @@ class Chain {
 	}
 	
 	replaceChain (chain) {
-		for (let block of chain)
+		let removedTransactions = [],
+			addedTransactions = [];
+
+		for (let block of chain) {
+			removedTransactions = removedTransactions.concat(this.blocks[block.index].txs.map(v => v+""));
+			addedTransactions = addedTransactions.concat(block.txs.map(v => v+""));
+
 			this.blocks[block.index] = block;
+		}
+
+		return {
+			removedTransactions:removedTransactions.filter(transaction => addedTransactions.indexOf(transaction) < 0),
+			addedTransactions:addedTransactions.filter(transaction => removedTransactions.indexOf(transaction) < 0)
+		};
 	}
 	
 	newChain (chain) {
 		if (this.isCompleteSameChain(chain)) {
-			if (this.itHasMoreTransactionData(chain)) {
-				this.replaceChain(chain);
-				return true;
-			}
+			if (this.itHasMoreTransactionData(chain))
+				return this.replaceChain(chain);
 			return false;
 		}
 
 		if (!this.isChainValid(chain))	return false;
 		if (!this.isSameOriginChain(chain))	return false;
 		if (!this.isBetterChain(chain))	return false;
-		this.replaceChain(chain);
-		return true;
+		return this.replaceChain(chain);
 	}
 };
 
