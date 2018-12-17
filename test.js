@@ -4,7 +4,7 @@ function randomNameDistanceTest () {
 
 	const coord = require('./coord.js');
 
-	let randoms = new Array(500).fill(0).map(e => Math.random()*1000+""),
+	let randoms = new Array(2000).fill(0).map(e => Math.random()*1000+""),
 		hashes = randoms.map(random => hash(random)),
 		coords = hashes.map(hash => coord(hash)),
 		dists = [];
@@ -31,6 +31,10 @@ function randomNameDistanceTest () {
 	console.log('Mean : \t\t',distMean);
 	console.log('Min : \t\t',distMin);
 	console.log('Average : \t',distAverage);
+	console.log('MaxDifficulty : \t',Math.sqrt(distMax)/33333 /199 /40 /28);
+	console.log('MeanDifficulty : \t',Math.sqrt(distMean)/33333 /199 /40 /28);
+	console.log('MinDifficulty : \t',Math.sqrt(distMin)/33333 /199 /40 /28);
+	console.log('AverageDifficulty : \t',Math.sqrt(distAverage)/33333 /199 /40 /28);
 
 };
 
@@ -66,4 +70,4 @@ function chainWorkTest() {
 	
 };
 
-chainWorkTest();
+randomNameDistanceTest();

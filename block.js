@@ -229,9 +229,8 @@ class Block {
 		};
 		Block.isDifficultValid = function (block) {
 			let difficulty = Coord.distance(Coord(block.hash), Coord(Wallet.getAddressFromPublicKey(block.publicKey)));
-			for (let i=0; i<5; i++)	difficulty = Math.sqrt(difficulty);
+			difficulty = Math.sqrt(difficulty)/33333 /199 /40 /28;
 
-			difficulty -= 8;
 			if (difficulty < 0)		return true;
 			return parseInt(block.hash.substr(0,Math.ceil(difficulty)), 16) === 0;
 		};
