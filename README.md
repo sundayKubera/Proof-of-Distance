@@ -12,5 +12,5 @@ choose the smallest block<br/>
 
 ### ToDo
 1. improve chain choose algorithm(Done)
-2. add distance calc to block
+2. add distance calc to block(Done)
 3. add code update transaction
