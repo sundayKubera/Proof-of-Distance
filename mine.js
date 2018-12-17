@@ -2,31 +2,49 @@ const Block = require('./block.js');
 const util = require('./util.js');
 
 const Mine = {
-	wallet : null,
+	wallet:null,
+	mining:false,
+	data:{nonce:0, miner:null, end:false, block:null},
+
+	mineStart () {
+		if (!this.mining)
+			this.mineLoop(this.mining = true);
+	},
+	mineStop () { this.mining = false; },
+	isMining () { return this.mining; },
+
+	mineLoop () {
+		if (this.data.end) {
+			try {
+				let block = this.data.miner.mine(this.data.nonce++, this.wallet);
+				if (block) {
+					this.data.block = block;
+					this.data.end = true;
+					this.onMine(this.data.block);
+				}
+			} catch (e) {}
+		}
+		
+		setTimeout(this.mineLoop.bind(this),10);
+	},
+
+	mine (index, version, prev_hash, trx=[]) {
+		this.data = {
+			nonce:0, end:false, block:null,
+			miner:new Block.Miner(index, version, prev_hash, trx)
+		};
+		this.mineStart();
+	},
 
 	mineGenesis(trx) {
-		return this.mineWithData(0, 1, util.toHex(0,64), trx);
+		return this.mine(0, 1, util.toHex(0,64), trx);
 	},
 
-	mineWithBlock(block, trx=[]) {
-		return this.mineWithData(block.index+1, block.version, block.hash, trx);
+	mineNextBlock(block, trx=[]) {
+		return this.mine(block.index+1, block.version, block.hash, trx);
 	},
 
-	mineWithData(index, version, prev_hash, trx=[]) {
-		let miner = new Block.Miner(index, version, prev_hash, trx);
-
-		for (let i=0; true; i++) {
-			try {
-				let block = miner.mine(i, this.wallet);
-				if (block)
-					return block;
-			} catch (e) {
-				throw e;
-				return false;
-			}
-		}
-		return false;
-	},
+	onMine () {},
 };
 
 module.exports = Mine;
