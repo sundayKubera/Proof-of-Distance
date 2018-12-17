@@ -44,5 +44,7 @@ const util = require('./util.js');
 		},
 	};
 
+	Mine.wallet = BlockChain.wallet;
+
 module.exports = BlockChain;
 module.exports.version = 1;
