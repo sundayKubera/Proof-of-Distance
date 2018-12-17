@@ -7,8 +7,10 @@ const Mine = {
 	data:{nonce:0, miner:null, end:false, block:null},
 
 	mineStart () {
-		if (!this.mining)
+		if (!this.mining) {
+			console.log("mining start");
 			this.mineLoop(this.mining = true);
+		}
 	},
 	mineStop () { this.mining = false; },
 	isMining () { return this.mining; },
@@ -16,12 +18,13 @@ const Mine = {
 	mineLoop () {
 		if (!this.data.end) {
 			try {
-				let block = this.data.miner.mine(this.data.nonce++, this.wallet);
+				let block = this.data.miner.mine(this.data.nonce, this.wallet);
 				if (block) {
 					this.data.block = block;
 					this.data.end = true;
 					this.onMine(this.data.block);
 				}
+				this.data.nonce = Math.floor(Math.random()*10000);
 			} catch (e) {
 				console.error(e);
 			}
