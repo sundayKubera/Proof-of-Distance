@@ -31,10 +31,7 @@ class Wallet {
 	}
 };
 	Wallet.getAddressFromPublicKey = function (publicKey) {
-		let address = publicKey;
-		for (let i=0; i<1024; i++)
-			address = util.sha256(address+i);
-		return address;
+		return util.sha256(publicKey+"address");
 	};
 
 	Wallet.publicKey2Pem = function (publicKey) {
