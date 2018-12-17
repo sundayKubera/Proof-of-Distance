@@ -17,6 +17,7 @@ const util = require('./util.js');
 			for (let transaction of transactions) {
 				transaction = transaction+"";
 
+				if (transaction === "padding")						continue;
 				if (!Transaction.verify(transaction))				continue;
 				if (this.transactions.indexOf(transaction) >= 0)	continue;
 
@@ -30,7 +31,6 @@ const util = require('./util.js');
 
 		newChain (chain) {
 			let data = this.chain.newChain(chain);
-
 			if (data) {
 				this.addTransactions(data.removedTransactions);
 				this.removeTransactions(data.addedTransactions);
@@ -38,15 +38,24 @@ const util = require('./util.js');
 		},
 
 		updateMiner () {
-			let transaction = new Transaction.Builder.Transmission(util.toHex(0,64), this.wallet.getAddress(), 100).sign(this.wallet);
-			if (this.chain.length == 0)	return Mine.mineGenesis([transaction, ...this.transactions]);
-			else						return Mine.mineNextBlock(this.chain.topBlock, [transaction, ...this.transactions]);
+			let transaction = new Transaction.Builder.Transmission(util.toHex(0,64), this.wallet.getAddress(), 100).sign(this.wallet)+"";
+
+			let transactions = [transaction, ...this.transactions];
+			if (transactions.length % 2 === 1) {
+				if (transactions.length > 1)	transactions.pop();
+				else							transactions.push("padding");
+			}
+
+			if (this.chain.blocks.length == 0)	return Mine.mineGenesis(transactions);
+			else								return Mine.mineNextBlock(this.chain.topBlock, transactions);
 		},
-		
+
 		onMine (block) {
 			this.newChain([block]);
 			this.updateMiner();
+			this.onOnMine(block);
 		},
+		onOnMine () {},
 
 		walletInfo (private=false) {
 			if (private) {
