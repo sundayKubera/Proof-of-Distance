@@ -1,7 +1,7 @@
 const util = require('./util.js');
 
 const Protocol = require('./protocol.js');
-const BlockChain = require('./blockchain.js');
+const BlockChain = require('./blockChain.js');
 const SocketServer = require('./socketServer.js')(Protocol);
 const HttpServer = require('./httpServer.js')(BlockChain, SocketServer);
 
