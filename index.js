@@ -7,12 +7,11 @@ const HttpServer = require('./httpServer.js')(BlockChain, SocketServer);
 
 process.on('uncaughtException', err => console.error(err));
 
-
 //main
 	Protocol.init(BlockChain,SocketServer);
 	SocketServer.listen(getIp(),	8000+Math.floor(Math.random()*1000));
 	HttpServer.listen(				8000+Math.floor(Math.random()*1000));
-	BlockChain.updateMiner();
+	setTimeout(() => BlockChain.updateMiner(),1000*5);
 
 	if ( process.argv[2] ) {
 		SocketServer.connectTo( `ws://localhost:`+process.argv[2] );

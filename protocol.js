@@ -6,6 +6,7 @@ const Protocol = {
 		msg.timestamp = Date.now();
 		msg.type = type;
 
+		console.log("send", msg);
 		Protocol.onSend( socket, JSON.stringify(msg) );
 	},
 
@@ -16,6 +17,7 @@ const Protocol = {
 		msg.timestamp = Date.now();
 		msg.type = type;
 
+		console.log("broadCast", msg);
 		Protocol.onBroadCast( JSON.stringify(msg) );
 	},
 
@@ -31,7 +33,7 @@ const Protocol = {
 	},
 
 	addProtocol (obj) {
-		for (let key of obj)
+		for (let key in obj)
 			this[key] = obj[key];
 	},
 
@@ -44,15 +46,6 @@ module.exports.version = 1;
 
 module.exports.init = function (BlockChain, SocketServer) {
 	const Block = require('./block.js');
-	
-	Protocol.onBroadCast = function (msg) {
-		console.log("broadCast", msg);
-		SocketServer.broadCast(msg);
-	};
-	Protocol.onSend = function (socket, msg) {
-		console.log("send", msg);
-		socket.send(msg);
-	};
 
 	Protocol.addProtocol({
 		'addrs-request':{

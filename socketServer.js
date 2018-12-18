@@ -1,7 +1,9 @@
 const WS = require('ws');
 
+var SocketServer;
+
 module.exports = function (Protocol) {
-	return {
+	SocketServer = SocketServer || {
 		port:0,
 		address:null,
 		server:null,
@@ -65,10 +67,16 @@ module.exports = function (Protocol) {
 
 		broadCast (message, socket=false) {
 			if (typeof message !== "string")	message = JSON.stringify(message);
-			
+
 			for (let addr in this.sockets) {
-				if (this.sockets[addr].socket)		this.sockets[addr].socket.send(message);
-				else if(this.sockets[addr].client)	this.sockets[addr].client.send(message);
+				addr = this.sockets[addr];
+				if (addr.socket){
+					if (addr.socket !== socket)
+						Protocol.onSend(addr.socket, message);
+				} else if (addr.client) {
+					if (addr.client !== socket)
+						Protocol.onSend(addr.client, message);
+				}
 			}
 		},
 
@@ -79,4 +87,14 @@ module.exports = function (Protocol) {
 			return this.sockets[addr] && ( this.sockets[addr].client || this.sockets[addr].socket );
 		},
 	};
+
+	Protocol.onBroadCast = function (msg) {
+		SocketServer.broadCast(msg);
+	};
+	Protocol.onSend = function (socket, msg) {
+		if (socket.readyState === WS.OPEN)
+			socket.send(msg);
+	};
+
+	return SocketServer;
 };
