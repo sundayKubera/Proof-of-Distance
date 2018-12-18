@@ -19,6 +19,20 @@ class ChainState {
 
 		console.log(this.state);
 	}
+
+	addTransactions (transactions) {
+		for (let transaction of transactions)
+			this.addTransaction(transaction);
+	}
+
+	addBlock (block) {
+		this.addTransactions(block.txs);
+	}
+
+	addBlocks (blocks) {
+		for (let block of blocks)
+			this.addTransactions(block.txs);
+	}
 };
 	ChainState.update = function (state, data) {
 		if (ChainState.handlers[data.type])
