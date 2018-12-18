@@ -8,16 +8,7 @@ class Chain {
 	 *
 	 */
 	constructor () {
-		this.blocks = [];
-	}
-
-	/**
-	 * Get Top Block
-	 * 
-	 * @return {object} : block
-	 */
-	get topBlock () {
-		return this.blocks[this.blocks.length-1];
+		this.chain = [];
 	}
 
 	/**
@@ -26,9 +17,16 @@ class Chain {
 	 * @param {int} i : index
 	 * @return {object} : block
 	 */
-	block (i) {
-		return this.blocks[i];
-	}
+	block (i) { return this.chain[i]; }
+	blocks () { return [...this.chain]; }
+	size () { return this.chain.length; }
+
+	/**
+	 * Get Top Block
+	 * 
+	 * @return {object} : block
+	 */
+	get topBlock () { return this.chain[this.chain.length-1]; }
 
 	/**
 	 * Check if chain Valid
@@ -56,7 +54,7 @@ class Chain {
 	 * @return {boolean}
 	 */
 	isCompleteSameChain (chain) {
-		return chain.map(block => block.hash).join() === this.blocks.map(block => block.hash).join();
+		return chain.map(block => block.hash).join() === this.chain.map(block => block.hash).join();
 	}
 	
 	/**
@@ -84,7 +82,7 @@ class Chain {
 	 * @return {boolean}
 	 */
 	isSameOriginChain (chain) {
-		if (this.blocks.length === 0)	return true;
+		if (this.chain.length === 0)	return true;
 		else if (chain[0].index === 0)	return chain[0].hash === this.block(0).hash;
 		else							return chain[0].prev_hash === this.block(chain[0].index-1).hash;
 	}
@@ -97,15 +95,15 @@ class Chain {
 	 * @return {boolean}
 	 */
 	isBetterChain (chain) {
-		if (this.blocks.length === 0)					return true;
+		if (this.chain.length === 0)					return true;
 		if (chain[0].index === this.topBlock.index+1)	return true;
 
-		let longerLength = Math.max(chain.length, this.blocks.length);
+		let longerLength = Math.max(chain.length, this.chain.length);
 		let newChainScore = this.scoreChain(chain);
-		let currChainScore = this.scoreChain(this.blocks);
+		let currChainScore = this.scoreChain(this.chain);
 
 		if (newChainScore < currChainScore)												return true;
-		else if (newChainScore == currChainScore && chain.length > this.blocks.length)	return true;
+		else if (newChainScore == currChainScore && chain.length > this.chain.length)	return true;
 		return false;
 	}
 
@@ -145,11 +143,11 @@ class Chain {
 			addedTransactions = [];
 
 		for (let block of chain) {
-			if (this.blocks[block.index])
-				removedTransactions = removedTransactions.concat(this.blocks[block.index].txs.map(v => v+""));
+			if (this.chain[block.index])
+				removedTransactions = removedTransactions.concat(this.chain[block.index].txs.map(v => v+""));
 			addedTransactions = addedTransactions.concat(block.txs.map(v => v+""));
 
-			this.blocks[block.index] = block;
+			this.chain[block.index] = block;
 		}
 
 		return {

@@ -9,9 +9,9 @@ const BlockChain = {
 	chain:new Chain(),
 	wallet:new Wallet(),
 
-	chainLength () { return this.chain.blocks.length; },
-	blocks () { return this.chain.blocks },
-	block (i) { return this.chain.blocks[i] },
+	chainLength () { return this.chain.size(); },
+	blocks () { return this.chain.blocks() },
+	block (i) { return this.chain.block(i) },
 
 	/**
 	 * add Transactions to Transaction Pool
