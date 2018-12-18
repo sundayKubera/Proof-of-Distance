@@ -104,6 +104,8 @@ class Chain {
 
 		if (newChainScore < currChainScore)												return true;
 		else if (newChainScore == currChainScore && chain.length > this.chain.length)	return true;
+
+		console.log("not accept", newChainScore, currChainScore, chain.length, this.chain.length);
 		return false;
 	}
 

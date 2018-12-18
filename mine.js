@@ -20,7 +20,7 @@ const Mine = {
 	 *  random mining
 	 */
 	mineLoop () {
-		for (let i=0; !this.data.end && i < 1000; i++) {
+		for (let i=0; !this.data.end && i < 1; i++) {
 			try {
 				let block = this.data.miner.mine(this.data.nonce, this.wallet);
 				if (block) {
@@ -50,6 +50,7 @@ const Mine = {
 			nonce:0, end:false, block:null,
 			miner:new Block.Miner(index, version, prev_hash, txs)
 		};
+		console.log("miner update");
 		this.startMine();
 	},
 
