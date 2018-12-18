@@ -1,6 +1,6 @@
 
 function randomNameDistanceTest () {
-	const hash = require('./sha256.js');
+	const hash = require('./util.js').sha256;
 
 	const coord = require('./coord.js');
 
@@ -39,7 +39,7 @@ function randomNameDistanceTest () {
 };
 
 function miningTimeTest () {// about 8zero to 10zero is good enough
-	const hash = require('./sha256.js');
+	const hash = require('./util.js').sha256;
 
 	const minute = 1000*60;
 
