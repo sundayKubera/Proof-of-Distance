@@ -23,7 +23,7 @@ choose the smallest block<br/>
 |        SocketServer        |        |
 +----------------------------+        |
 |          Protocol          |        |
-+-------------------------------------+
++----------------------------+--------+
 |              BlockChain             |
 +--------+-------------+-------+------+
 | Wallet | Transaction | Chain | Mine |
