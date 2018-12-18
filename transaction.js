@@ -113,15 +113,31 @@ class TransmissionBuilder extends TransactionBuilder {
 	 */
 	constructor (sendAddr, 	receiveAddr, amount) {
 		super();
-		this.data.type = "transmission";
+		this.data.type = 'transmission';
 		this.data.receiveAddr = receiveAddr;
 		this.data.sendAddr = sendAddr;
 		this.data.amount = amount;
 	}
+
+	sign (wallet) {
+		if (this.data.sendAddr === util.zeros64) {
+			if (wallet.getAddress() !== this.data.receiveAddr)	throw new Error('TransmissionBuilder : sign : unValid wallet to sign');
+		} else if (wallet.getAddress() !== this.data.sendAddr)	throw new Error('TransmissionBuilder : sign : unValid wallet to sign');
+
+		return TransactionBuilder.prototype.sign.call(this, wallet);
+	}
 }
+
+class GetMinerPermissionBuilder extends TransactionBuilder {
+	constructor () {
+		super();
+		this.data.type = 'get-miner-permission';
+	}
+};
 
 module.exports = Transaction;
 module.exports.Builder = TransactionBuilder;
 module.exports.Builder.Transmission = TransmissionBuilder;
+module.exports.Builder.GetMinerPermission = GetMinerPermissionBuilder;
 
 module.exports.version = 1;
