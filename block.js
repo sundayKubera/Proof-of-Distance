@@ -1,5 +1,4 @@
 const Wallet = require('./wallet.js');
-const Coord = require('./coord.js');
 const util = require('./util.js');
 
 class Block {
@@ -85,7 +84,7 @@ class Block {
 	Block.calcDifficulty = function (prev_hash, walletAddress) {
 		if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
 		
-		let difficulty = Coord.distance(Coord(prev_hash), Coord(walletAddress));
+		let difficulty = util.Coord.distance(util.Coord(prev_hash), util.Coord(walletAddress));
 		return Math.sqrt(difficulty)/33333 /199 /40 /28;
 	};
 

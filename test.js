@@ -1,8 +1,7 @@
 
 function randomNameDistanceTest () {
 	const hash = require('./util.js').sha256;
-
-	const coord = require('./coord.js');
+	const coord = require('./util.js').Coord;
 
 	let randoms = new Array(2000).fill(0).map(e => Math.random()*1000+""),
 		hashes = randoms.map(random => hash(random)),
