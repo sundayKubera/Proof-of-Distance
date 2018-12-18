@@ -6,7 +6,7 @@ class Wallet {
 	/**
 	 * Create Simple Wallet
 	 *
-	 * @param privateKey {string} HEX formated private key (default false => automatically create one) 
+	 * @param {string} privateKey : HEX formated private key (default false => automatically create one) 
 	 */
 	constructor (privateKey=false) {
 		this.ECDH = crypto.createECDH('secp521r1');
@@ -27,6 +27,7 @@ class Wallet {
 
 	/**
 	 * Get HEX Format Keys
+	 *  Pem is too long to use in Transaction & Block...
 	 *
 	 * @return {string} HEX fomated keys
 	 */
@@ -43,7 +44,7 @@ class Wallet {
 	/**
 	 * Sign on Data
 	 *
-	 * @param dataString {string} data to sign on
+	 * @param {string} dataString : data to sign on
 	 * @return {string} sign
 	 */
 	getSign (dataString) {
@@ -56,16 +57,18 @@ class Wallet {
 
 	/**
 	 * Generate Address From Public Key
+	 *  it needs when 'Making & Verifing Transaction'
 	 *
-	 * @param publicKey {string}
+	 * @param {string} publicKey : result of Wallet.getPublicKey()
 	 * @return {string} sign
 	 */
 	Wallet.getAddressFromPublicKey = function (publicKey) { return util.sha256(publicKey+"address"); };
 
 	/**
 	 * Convert HEX format Public Key To .Pem format
+	 *  it needs when 'Verifing Transaction'
 	 *
-	 * @param publicKey {string}
+	 * @param {string} publicKey
 	 * @return {string} .Pem formated Public Key
 	 */
 	Wallet.publicKey2Pem = function (publicKey) {
@@ -82,9 +85,9 @@ class Wallet {
 	/**
 	 * Check the Sign is Valid
 	 *
-	 * @param data {string} data that Signed on
-	 * @param sign {string} Sign to Verify
-	 * @param publicPem {string} .Pem formated Public Key (it needs to verify)
+	 * @param {string} data data that Signed on
+	 * @param {string} sign Sign to Verify
+	 * @param {string} publicPem .Pem formated Public Key (it needs to verify)
 	 * @return {boolen} valid or not valid
 	 */
 	Wallet.verifySign = function (data, sign, publicPem) {
