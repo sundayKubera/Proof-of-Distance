@@ -10,6 +10,12 @@ module.exports = function (Protocol) {
 		sockets:{},
 		firstOpen:true,
 
+		/**
+		 * Server start
+		 *
+		 * @param {string} host
+		 * @param {int} port
+		 */
 		listen (host, port) {
 			this.port = port;
 			this.address = `ws://${host}:${port}`;
@@ -25,9 +31,14 @@ module.exports = function (Protocol) {
 				});
 			});
 
-			console.log('listen on : ws://localhost:'+this.port);
+			console.log('listen on : '+this.address);
 		},
 
+		/**
+		 * connect to socket server
+		 *
+		 * @param {string} addr : socket server address
+		 */
 		connectTo (addr) {
 			if (this.hasConnectionTo(addr) || this.address === addr)	return false;
 
@@ -49,6 +60,13 @@ module.exports = function (Protocol) {
 			client.on('message', msg => console.log("recive", msg));
 		},
 
+		/**
+		 * add address & socket to peer pool
+		 *
+		 * @param {string} addr : peer address
+		 * @param {object} socket : peer socket
+		 * @param {boolean} isClient : if false then it is SocketServer else it is Client
+		 */
 		addSocket (addr, socket, isClient=false) {
 			if (!this.sockets[addr])	this.sockets[addr] = {};
 
@@ -56,6 +74,13 @@ module.exports = function (Protocol) {
 			else			this.sockets[addr].socket = socket;
 		},
 
+		/**
+		 * remove socket from peer pool
+		 *
+		 * @param {string} addr : peer address
+		 * @param {object} socket : peer socket
+		 * @param {boolean} isClient : if false then it is SocketServer else it is Client
+		 */
 		removeSocket (addr, socket, isClient=false) {
 			if (!this.sockets[addr])	this.sockets[addr] = {};
 
@@ -65,6 +90,12 @@ module.exports = function (Protocol) {
 				delete this.sockets[addr].socket;
 		},
 
+		/**
+		 * broadcast to all | broadcast except this socket
+		 *
+		 * @param {object|string} message
+		 * @param {object} socket : exception socket
+		 */
 		broadCast (message, socket=false) {
 			if (typeof message !== "string")	message = JSON.stringify(message);
 
@@ -80,9 +111,20 @@ module.exports = function (Protocol) {
 			}
 		},
 
+		/**
+		 * peer addresses
+		 *
+		 * @return {string[]}
+		 */
 		addrs () {
 			return Object.keys(this.sockets);
 		},
+
+		/**
+		 * has connection to address
+		 *
+		 * @return {boolean}
+		 */
 		hasConnectionTo (addr) {
 			return this.sockets[addr] && ( this.sockets[addr].client || this.sockets[addr].socket );
 		},
