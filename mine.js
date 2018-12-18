@@ -6,17 +6,21 @@ const Mine = {
 	mining:false,
 	data:{nonce:0, miner:null, end:false, block:null},
 
-	mineStart () {
+	startMine () {
 		if (!this.mining) {
 			console.log("mining start");
 			this.mineLoop(this.mining = true);
 		}
 	},
-	mineStop () { this.mining = false; },
+	stopMine () { this.mining = false; },
 	isMining () { return this.mining; },
 
+	/**
+	 * Mining Loop
+	 *  random mining
+	 */
 	mineLoop () {
-		if (!this.data.end) {
+		for (let i=0; !this.data.end && i < 1000; i++) {
 			try {
 				let block = this.data.miner.mine(this.data.nonce, this.wallet);
 				if (block) {
@@ -33,23 +37,47 @@ const Mine = {
 		setTimeout(this.mineLoop.bind(this),10);
 	},
 
+	/**
+	 * Mining start
+	 * 
+	 * @param {int} index
+	 * @param {int} version
+	 * @param {string} prev_hash
+	 * @param {object[]|string[]} txs
+	 */
 	mine (index, version, prev_hash, txs=[]) {
 		this.data = {
 			nonce:0, end:false, block:null,
 			miner:new Block.Miner(index, version, prev_hash, txs)
 		};
-		this.mineStart();
+		this.startMine();
 	},
 
+	/**
+	 * Mine Genesis Block
+	 * 
+	 * @param {object[]|string[]} txs
+	 */
 	mineGenesis(txs) {
 		return this.mine(0, 1, util.toHex(0,64), txs);
 	},
 
+	/**
+	 * Mine Next Block
+	 * 
+	 * @param {object} block
+	 * @param {object[]|string[]} txs
+	 */
 	mineNextBlock(block, txs=[]) {
 		return this.mine(block.index+1, block.version, block.hash, txs);
 	},
 
-	onMine () {},
+	/**
+	 * On Mine Callback
+	 * 
+	 * @param {object} block
+	 */
+	onMine (block) {},
 };
 
 module.exports = Mine;
