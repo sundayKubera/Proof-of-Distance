@@ -9,8 +9,8 @@ process.on('uncaughtException', err => console.error(err));
 
 //main
 	Protocol.init(BlockChain,SocketServer);
-	SocketServer.listen(getIp(),	8000+Math.floor(Math.random()*1000));
-	HttpServer.listen(				8000+Math.floor(Math.random()*1000));
+	SocketServer.listen(getIp(),	process.argv[2] ? 8000+Math.floor(Math.random()*1000) : 8000);
+	HttpServer.listen(				process.argv[2] ? 8000+Math.floor(Math.random()*1000) : 8001);
 	setTimeout(() => BlockChain.updateMiner(),1000*5);
 
 	if ( process.argv[2] )
