@@ -2,12 +2,28 @@ const Wallet = require('./wallet.js');
 const util = require('./util.js');
 
 class Block {
-	constructor (index, version, prev_hash, mrkl_hash, txsLength, txsSize, timestamp, publicKey, nonce, hash, sign, txs=false) {
+	/**
+	 * Create Simple Block
+	 *  todo : have to add 'node registration transaction' proof ( add block.index as block.birthIndex ?? )
+	 *
+	 * @param {int} index : index of block
+	 * @param {int} version : version of block
+	 * @param {string} prev_hash : previous block's hash (if genesis then "0"*64)
+	 * @param {string} mrkl_hash : hash of transactions(top of mrkl tree)
+	 * @param {int} txsCount : count of transactions(transactions.length)
+	 * @param {int} txsSize : length of JSON.stringify(transactions)
+	 * @param {string} publicKey : miner's publicKey(to verify sign & get address)
+	 * @param {int} nonce : random int
+	 * @param {string} hash : hash of upper params
+	 * @param {string} sign : sign on hash
+	 * @param {string[]|object[]} txs : default it is empty
+	 */
+	constructor (index, version, prev_hash, mrkl_hash, txsCount, txsSize, timestamp, publicKey, nonce, hash, sign, txs=false) {
 		this.index = index;
 		this.version = version;
 		this.prev_hash = prev_hash;
 		this.mrkl_hash = mrkl_hash;
-		this.txsLength = txsLength;
+		this.txsCount = txsCount;
 		this.txsSize = txsSize;
 		this.timestamp = timestamp;
 		this.publicKey = publicKey;
@@ -29,14 +45,27 @@ class Block {
 		}
 	}
 
+	/**
+	 * Fill transactions
+	 *
+	 * @param {string[]|object[]} txs
+	 * @return {boolean} : is accepted
+	 */
 	setTransactions (txs) {
-		if (txs.length !== this.txsLength)					return false;
+		if (txs.length !== this.txsCount)					return false;
 		if (JSON.stringify(txs).length !== this.txsSize)	return false;
 		if (!Block.isMrklHashValid(this.mrkl_hash, txs))	return false;
 		this.txs = [...txs];
 		return true;
 	}
 
+	/**
+	 * Convert Block Object into String
+	 *  does it need Block.encode?
+	 *
+	 * @param {boolean} include_txs : default false => just header
+	 * @return {string}
+	 */
 	toString (include_txs=false) {
 		return JSON.stringify(
 			Block.encode(this, include_txs ? Block.full_block_properties : false)
@@ -44,11 +73,18 @@ class Block {
 	}
 };
 	
-	Block.full_block_properties = "index,version,prev_hash,mrkl_hash,txsLength,txsSize,timestamp,publicKey,nonce,hash,sign,txs".split(",");
-	Block.block_properties = "index,version,prev_hash,mrkl_hash,txsLength,txsSize,timestamp,publicKey,nonce,hash,sign".split(",");
-	Block.hash_properties = "index,version,prev_hash,mrkl_hash,txsLength,txsSize,timestamp,publicKey,nonce".split(",");
+	Block.full_block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce,hash,sign,txs".split(",");
+	Block.block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce,hash,sign".split(",");
+	Block.hash_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce".split(",");
 
 	/* encode & decode */
+		/**
+		 * Convert Block Object into Array
+		 *
+		 * @param {object} block
+		 * @param {string[]} properties : sequence of properties
+		 * @return {array}
+		 */
 		Block.encode = function (block, properties=false) {
 			let encodedBlock = [];
 
@@ -57,19 +93,39 @@ class Block {
 
 			return encodedBlock;
 		};
+
+		/**
+		 * Convert Array into Block Object
+		 *
+		 * @param {array} block : Block.encode(...)
+		 * @return {object} : instanceof Block
+		 */
 		Block.decode = function (block) {
 			if (block+"" === block)
 				block = JSON.parse(block);
 			return new Block(...block);
 		};
 
-	/* hash functions */
+	/* calc functions */
+		/**
+		 * Calculate Hash of Block
+		 *
+		 * @param {object} block : Block to hash
+		 * @return {string} : hash
+		 */
 		Block.calcBlockHash = function (block) {
 			let encodedBlock = Block.encode(block, Block.hash_properties);
 			return util.sha256(JSON.stringify(encodedBlock));
 		};
+
+		/**
+		 * Calculate MrKl Hash of transactions
+		 *
+		 * @param {string[]} txs : transactions to hash
+		 * @return {string} : hash
+		 */
 		Block.calcMrklHash = function (txs) {
-			if (txs.length % 2 !== 0)	throw `calcMrklHash : txs.length is not even`;
+			if (txs.length % 2 !== 0)	txs = [...txs, "padding"];
 
 			let hashes = txs.map(tx => util.sha256(tx));
 			while (hashes.length > 1) {
@@ -81,17 +137,27 @@ class Block {
 			return hashes[0];
 		};
 
-	Block.calcDifficulty = function (prev_hash, walletAddress) {
-		if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
-		
-		let difficulty = util.Coord.distance(util.Coord(prev_hash), util.Coord(walletAddress));
-		return Math.sqrt(difficulty)/33333 /199 /40 /28;
-	};
+		/**
+		 * Calculate Difficulty of block
+		 *
+		 * @param {string} prev_hash
+		 * @param {string} walletAddress : it needs to be replace with 'node name'
+		 * @return {string} : hash
+		 */
+		Block.calcDifficulty = function (prev_hash, walletAddress) {
+			if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
+			
+			let difficulty = util.Coord.distance(util.Coord(prev_hash), util.Coord(walletAddress));
+			return Math.sqrt(difficulty)/33333 /199 /40 /28;
+		};
 
 	/* check functions */
-		Block.isBlockValid = function (block) {
-			return Block.isBlockHeadValid(block) && Block.isMrklHashValid(block.mrkl_hash, block.txs);
-		};
+		/**
+		 * Check Param Types Valid
+		 *
+		 * @param {object} block
+		 * @return {boolean}
+		 */
 		Block.isPropertiesValid = function (block, isMiner=false) {//ToDo : publicKey, sign check
 			if (!Number.isInteger(block.index))			throw new Error(`Block : isPropertiesValid : index must be a int`);
 			if (!Number.isInteger(block.version))		throw new Error(`Block : isPropertiesValid : version must be a int`);
@@ -105,9 +171,9 @@ class Block {
 			if (!Number.isInteger(block.timestamp))		throw new Error(`Block : isPropertiesValid : timestamp must be a int`);
 			else if (block.timestamp > Date.now())		throw new Error(`Block : isPropertiesValid : timestamp can't bigger then 'Date.now()'`);
 
-			if (!Number.isInteger(block.txsLength))		throw new Error(`Block : isPropertiesValid : txsLength must be a int`);
+			if (!Number.isInteger(block.txsCount))		throw new Error(`Block : isPropertiesValid : txsCount must be a int`);
 			if (!Number.isInteger(block.txsSize))		throw new Error(`Block : isPropertiesValid : txsSize must be a int`);
-			if (block.txsLength > block.txsSize)		throw new Error(`Block : isPropertiesValid : '[].length' can't bigger then 'JSON.stringify([]).length'`);
+			if (block.txsCount > block.txsSize)		throw new Error(`Block : isPropertiesValid : '[].length' can't bigger then 'JSON.stringify([]).length'`);
 
 			if (!Number.isInteger(block.nonce))			throw new Error(`Block : isPropertiesValid : nonce must be a int`);
 
@@ -118,26 +184,80 @@ class Block {
 				//sign, publicKey
 			}
 		};
+		
+		/**
+		 * Check blocks difficulty & hash & sign & mrkl_hash
+		 *
+		 * @param {object} block
+		 * @return {boolean}
+		 */
+		Block.isBlockValid = function (block) {
+			return Block.isBlockHeadValid(block) && Block.isMrklHashValid(block.mrkl_hash, block.txs);
+		};
+
+		/**
+		 * Check blocks difficulty & hash & sign
+		 *
+		 * @param {object} block
+		 * @return {boolean}
+		 */
 		Block.isBlockHeadValid = function (block) {
 			return Block.isDifficultValid(block) && Block.isBlockHashValid(block) && Block.isSignValid(block);
 		};
+
+		/**
+		 * Check blocks difficulty
+		 *
+		 * @param {object} block
+		 * @return {boolean}
+		 */
 		Block.isDifficultValid = function (block) {
 			let difficulty = Block.calcDifficulty(block.prev_hash, Wallet.getAddressFromPublicKey(block.publicKey));
 			return difficulty < 0 || parseInt(block.hash.substr(0,Math.ceil(difficulty)), 16) === 0;
 		};
+
+		/**
+		 * Check blocks hash
+		 *
+		 * @param {object} block
+		 * @return {boolean}
+		 */
 		Block.isBlockHashValid = function (block) {
 			return block.hash === Block.calcBlockHash(block);
 		};
+
+		/**
+		 * Check blocks sign
+		 *
+		 * @param {object} block
+		 * @return {boolean}
+		 */
 		Block.isSignValid = function (block) {
 			let hash = Block.calcBlockHash(block);
 			return Wallet.verifySign(hash, block.sign, Wallet.publicKey2Pem(block.publicKey));
 		};
+
+		/**
+		 * Check blocks mrkl hash
+		 *
+		 * @param {string} mrkl_hash
+		 * @param {string[]} txs
+		 * @return {boolean}
+		 */
 		Block.isMrklHashValid = function(mrkl_hash, txs) {
 			return mrkl_hash === Block.calcMrklHash(txs);
 		};
 
 	Block.Miner = class BlockMiner {
 
+		/**
+		 * Create Simple Block Miner
+		 *
+		 * @param {int} index : index of block
+		 * @param {int} version : version of block
+		 * @param {string} prev_hash : previous block's hash (if genesis then "0"*64)
+		 * @param {string[]|object[]} txs : default it is empty
+		 */
 		constructor (index, version, prev_hash, txs=[]) {
 			this.index = index;
 			this.version = version;
@@ -145,7 +265,7 @@ class Block {
 			this.prev_hash = prev_hash;
 			this.mrkl_hash = Block.calcMrklHash(txs);
 
-			this.txsLength = txs.length;
+			this.txsCount = txs.length;
 			this.txsSize = JSON.stringify(txs).length;
 
 			this.timestamp = Date.now();
@@ -158,6 +278,14 @@ class Block {
 			this.sign = "";
 		}
 
+
+		/**
+		 * Mine With nonce & wallet
+		 *
+		 * @param {int} nonce : random int
+		 * @param {object} wallet : miner wallet to sign on block
+		 * @result {boolean|object} : if Succed then return newBlock else return false;
+		 */
 		mine (nonce,wallet) {
 			this.nonce = nonce;
 			this.publicKey = wallet.getPublicKey();
@@ -170,11 +298,8 @@ class Block {
 				return false;
 			}
 
-			if (Block.isBlockValid(this)) {
-				//let difficulty = Block.calcDifficulty(this.hash, Wallet.getAddressFromPublicKey(this.publicKey));
-				//console.log("next difficulty : ", difficulty);
+			if (Block.isBlockValid(this))
 				return Block.decode(Block.encode(this, Block.full_block_properties));
-			}
 			return false;
 		}
 	};
