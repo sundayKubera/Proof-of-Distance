@@ -77,3 +77,33 @@ function Coord (hash, structure=false) {
 
 module.exports.Coord = Coord;
 
+/* encode & decode */
+
+	/**
+	 * Convert Object into Array
+	 *
+	 * @param {object} object
+	 * @param {string[]} properties : sequence of properties
+	 * @return {array}
+	 */
+	function encode (object, properties=[]) {
+		let encoded = [];
+
+		for (let property of properties)
+			encoded.push( object[property] );
+
+		return encoded;
+	};
+
+	/**
+	 * Convert Array into Object
+	 *
+	 * @param {array} object : util.encode(...)
+	 * @return {object} : instanceof CLASS
+	 */
+	function decode (array, CLASS=Object) {
+		return new CLASS(...array);
+	};
+
+module.exports.encode = encode;
+module.exports.decode = decode;

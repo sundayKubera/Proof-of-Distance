@@ -24,7 +24,7 @@ class Transaction {
 
 	/**
 	 * Convert Transaction Object into String
-	 *  is Transaction.encode really need?
+	 *  is Transaction.encode really need? yes it needs for compressing
 	 *
 	 * @return {string}
 	 */
@@ -33,6 +33,9 @@ class Transaction {
 	}
 };
 	/* encode & decode */
+		Transaction.transaction_properties = "hash,sign,address,publicKey,data,timestamp".split(",");
+		Transaction.hash_properties = "address,publicKey,data,timestamp".split(",");
+
 		/**
 		 * Convert Transaction Object into Array
 		 *
@@ -40,22 +43,15 @@ class Transaction {
 		 * @param {boolen} isNotForHash : default true
 		 * @return {array}
 		 */
-		Transaction.encode = function (transaction,isNotForHash=false) {//Object => Array
-			if (isNotForHash)
-				return [transaction.hash, transaction.sign, transaction.address, transaction.publicKey, transaction.data, transaction.timestamp];
-			return [transaction.address, transaction.publicKey, transaction.data, transaction.timestamp];
-		};
+		Transaction.encode = function (transaction,isNotForHash=false) { return util.encode(transaction, isNotForHash ? Transaction.transaction_properties : Transaction.hash_properties); };
+		
 		/**
 		 * Convert Array into Transaction Object
 		 *
 		 * @param {array} transaction : Transaction.encode(...)
 		 * @return {object} : instanceof Transaction
 		 */
-		Transaction.decode = function (transaction) {//(Array | String) => Object
-			if (transaction+"" === transaction)
-				transaction = JSON.parse(transaction);
-			return new Transaction( ...transaction );
-		};
+		Transaction.decode = function (transaction) { return util.decode(transaction, Transaction); };
 
 	/* check */
 		/**

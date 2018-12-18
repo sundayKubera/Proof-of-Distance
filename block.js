@@ -85,14 +85,7 @@ class Block {
 		 * @param {string[]} properties : sequence of properties
 		 * @return {array}
 		 */
-		Block.encode = function (block, properties=false) {
-			let encodedBlock = [];
-
-			for (let property of (properties || Block.block_properties))
-				encodedBlock.push( block[property] );
-
-			return encodedBlock;
-		};
+		Block.encode = function (block, properties=false) { return util.encode(block, properties || Block.properties); };
 
 		/**
 		 * Convert Array into Block Object
@@ -100,11 +93,7 @@ class Block {
 		 * @param {array} block : Block.encode(...)
 		 * @return {object} : instanceof Block
 		 */
-		Block.decode = function (block) {
-			if (block+"" === block)
-				block = JSON.parse(block);
-			return new Block(...block);
-		};
+		Block.decode = function (block) { return util.decode(block, Block); };
 
 	/* calc functions */
 		/**
