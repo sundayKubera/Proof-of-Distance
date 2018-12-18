@@ -28,3 +28,5 @@ choose the smallest block<br/>
 	|     +----------------------------------+------+-------+ |
 	|                     Wallet                    | Coord | |
 	+-----------------------------------------------+-------+-+
+	
+currently have some error with Chain Choose
