@@ -15,3 +15,20 @@ choose the smallest block<br/>
 3. add Comment(it's too dirty)
 4. rebuild whole system(it's too dirty too)
 5. add code update transaction
+
+### Current System
++-------------------+-----------------+
+|                   |    HttpServer   |
+|                   +--------+        |
+|        SocketServer        |        |
++----------------------------+        |
+|          Protocol          |        |
++-------------------------------------+
+|              BlockChain             |
++--------+-------------+-------+------+
+| Wallet | Transaction | Chain | Mine |
+|        +-------------+-------+------+
+|                      |    Block     |
+|                      +------+-------+
+|                             | Coord |
++-----------------------------+-------+
