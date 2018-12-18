@@ -17,7 +17,7 @@ choose the smallest block<br/>
 5. add code update transaction
 
 ### Current System
-+----------+---------+----------------+-+
++----------+----------+---------------+-+
 |          \           \  HttpServer  | |
 |          /            \             | |FrontEnd
 | Protocol \             \            | |
