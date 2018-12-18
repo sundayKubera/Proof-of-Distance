@@ -1,26 +1,6 @@
 const crypto = require('crypto');
 
-/**
- * Convert Int in to Hex String
- *  just using it for "0"*64(can be removed)
- *
- * @param {int} int
- * @param {int} len : result string.length (default 8)
- * @return {string} : hex string
- */
-function toHex(int, len=8) {
-	let hex = int.toString(16);
-	
-	if (hex.length > len)
-		throw `toHex : '${int}' too big (len=${len})`;
-
-	while (hex.length < len)
-		hex = "0"+hex;
-	
-	return hex;
-};
-
-module.exports.toHex = toHex;
+module.exports.zeros64 = new Array(64).fill(0).join("");
 
 /* checking functions */
 

@@ -59,7 +59,7 @@ const Mine = {
 	 * @param {object[]|string[]} txs
 	 */
 	mineGenesis(txs) {
-		return this.mine(0, 1, util.toHex(0,64), txs);
+		return this.mine(0, 1, util.zeros64, txs);
 	},
 
 	/**

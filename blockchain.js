@@ -66,7 +66,7 @@ const BlockChain = {
 	 *  make publish transaction
 	 */
 	updateMiner () {
-		let transaction = new Transaction.Builder.Transmission(util.toHex(0,64), this.wallet.getAddress(), 100).sign(this.wallet)+"";
+		let transaction = new Transaction.Builder.Transmission(util.zeros64, this.wallet.getAddress(), 100).sign(this.wallet)+"";
 		let transactions = [transaction, ...this.transactions];
 
 		console.log("updateMiner");
