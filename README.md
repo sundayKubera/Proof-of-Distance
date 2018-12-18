@@ -19,16 +19,16 @@ choose the smallest block<br/>
 ### Current System
 +-------------------+-----------------+
 |                   |    HttpServer   |
-|                   +--------+        |
-|        SocketServer        |        |
+|    SocketServer   +--------+        |
+|                            |        |
 +----------------------------+        |
 |          Protocol          |        |
 +----------------------------+--------+
 |              BlockChain             |
 +--------+-------------+-------+------+
-| Wallet | Transaction | Chain | Mine |
+|        | Transaction | Chain | Mine |
 |        +-------------+-------+------+
-|                      |    Block     |
+|        Wallet        |    Block     |
 |                      +------+-------+
 |                             | Coord |
 +-----------------------------+-------+
