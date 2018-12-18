@@ -56,8 +56,6 @@ module.exports = function (Protocol) {
 			});
 			client.on('message', Protocol.handler.bind(Protocol, client));
 			client.on('close', e => this.removeSocket(addr, client, true));
-
-			client.on('message', msg => console.log("recive", msg));
 		},
 
 		/**
