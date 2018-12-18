@@ -98,5 +98,4 @@ class Wallet {
 	};
 
 module.exports = Wallet;
-
 module.exports.verseion = 1;

@@ -140,3 +140,4 @@ module.exports = function (Protocol) {
 
 	return SocketServer;
 };
+module.exports.version = 1;

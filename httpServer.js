@@ -38,3 +38,4 @@ module.exports = function (BlockChain, SocketServer) {
 		}
 	};
 };
+module.exports.version = 1;

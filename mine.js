@@ -81,3 +81,4 @@ const Mine = {
 };
 
 module.exports = Mine;
+module.exports.version = 1;

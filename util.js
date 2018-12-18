@@ -80,11 +80,11 @@ module.exports.Coord = Coord;
 /* encode & decode */
 
 	/**
-	 * Convert Object into Array
+	 * Convert Object into String
 	 *
 	 * @param {object} object
 	 * @param {string[]} properties : sequence of properties
-	 * @return {array}
+	 * @return {string}
 	 */
 	function encode (object, properties=[]) {
 		let encoded = [];
@@ -92,18 +92,19 @@ module.exports.Coord = Coord;
 		for (let property of properties)
 			encoded.push( object[property] );
 
-		return encoded;
+		return JSON.stringify(encoded);
 	};
 
 	/**
-	 * Convert Array into Object
+	 * Convert String into Object
 	 *
-	 * @param {array} object : util.encode(...)
+	 * @param {string} object : util.encode(...)
 	 * @return {object} : instanceof CLASS
 	 */
 	function decode (array, CLASS=Object) {
-		return new CLASS(...array);
+		return new CLASS(...JSON.parse(array));
 	};
 
 module.exports.encode = encode;
 module.exports.decode = decode;
+module.exports.version = 1;

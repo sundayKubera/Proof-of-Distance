@@ -69,7 +69,6 @@ const BlockChain = {
 		let transaction = new Transaction.Builder.Transmission(util.zeros64, this.wallet.getAddress(), 100).sign(this.wallet)+"";
 		let transactions = [transaction, ...this.transactions];
 
-		console.log("updateMiner");
 		if (this.chain.blocks.length == 0)	return Mine.mineGenesis(transactions);
 		else								return Mine.mineNextBlock(this.chain.topBlock, transactions);
 	},
@@ -81,8 +80,8 @@ const BlockChain = {
 	 * @param {object} block
 	 */
 	onMine (block) {
-		this.newChain([block]);
-		this.onOnMine(block);
+		if (this.newChain([block]))
+			this.onOnMine(block);
 	},
 	onOnMine () {},
 

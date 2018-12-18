@@ -72,10 +72,7 @@ const Protocol = {
 	onBroadCast(msg) {},
 };
 
-module.exports = Protocol;
-module.exports.version = 1;
-
-module.exports.init = function (BlockChain, SocketServer) {
+Protocol.init = function (BlockChain, SocketServer) {
 	const Block = require('./block.js');
 
 	Protocol.addMessage({
@@ -112,7 +109,7 @@ module.exports.init = function (BlockChain, SocketServer) {
 		},
 		'chain-response':{
 			messager () { return {blocks:BlockChain.blocks().map(block => block+"")}; },
-			handler (socket, msg) { BlockChain.newChain(msg.blocks.map(v => Block.decode(v))); }
+			handler (socket, msg) { BlockChain.newChain(msg.blocks); }
 		},
 
 		/**
@@ -122,14 +119,19 @@ module.exports.init = function (BlockChain, SocketServer) {
 		 *  @param {string[]} blocks
 		 */
 		'chain-broadcasting':{
-			messager () { return {blocks:BlockChain.blocks().map(block => block+"")}; },
+			messager () {
+				return {blocks:BlockChain.blocks().map(block => block+"")};
+			},
 			handler (socket, msg) {
-				if (BlockChain.newChain(msg.blocks.map(v => Block.decode(v))))
+				if (BlockChain.newChain(msg.blocks))
 					SocketServer.broadCast(msg, socket);
 			}
 		},
 	});
 		BlockChain.onOnMine = function (block) {
-			Protocol.broadCaster('chain-broadcasting', BlockChain.blocks().map(v => v+""));
+			Protocol.broadCaster('chain-broadcasting');
 		};
 };
+
+module.exports = Protocol;
+module.exports.version = 1;
