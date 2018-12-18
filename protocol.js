@@ -101,7 +101,7 @@ Protocol.init = function (BlockChain, SocketServer) {
 		 * request
 		 *  @param no data
 		 * response
-		 *  @param {string[]} addr
+		 *  @param {string[]} blocks
 		 */
 		'chain-request':{
 			messager () { return {}; },
@@ -119,9 +119,7 @@ Protocol.init = function (BlockChain, SocketServer) {
 		 *  @param {string[]} blocks
 		 */
 		'chain-broadcasting':{
-			messager () {
-				return {blocks:BlockChain.blocks().map(block => block+"")};
-			},
+			messager () { return {blocks:BlockChain.blocks().map(block => block+"")}; },
 			handler (socket, msg) {
 				if (BlockChain.newChain(msg.blocks))
 					SocketServer.broadCast(msg, socket);
@@ -131,6 +129,39 @@ Protocol.init = function (BlockChain, SocketServer) {
 		BlockChain.onOnMine = function (block) {
 			Protocol.broadCaster('chain-broadcasting');
 		};
+
+	Protocol.addMessage({
+		/**
+		 * transaction listing message
+		 * 
+		 * request
+		 *  @param no data
+		 * response
+		 *  @param {string[]} transactions
+		 */
+		'transaction-request':{
+			messager () { return {}; },
+			handler (socket, msg) { Protocol.messager(socket, 'transaction-response'); }
+		},
+		'transaction-response':{
+			messager () { return {transactions:BlockChain.transactions.map(transaction => transaction+"")}; },
+			handler (socket, msg) { BlockChain.addTransactions(msg.transactions); }
+		},
+
+		/**
+		 * transaction broadcasting message(on mine new block)
+		 * 
+		 * broadcasting
+		 *  @param {string[]} transactions
+		 */
+		'transaction-broadcasting':{
+			messager () { return {transactions:BlockChain.transactions.map(transaction => transaction+"")}; },
+			handler (socket, msg) {
+				if (BlockChain.addTransactions(msg.transactions))
+					SocketServer.broadCast(msg, socket);
+			}
+		},
+	});
 };
 
 module.exports = Protocol;
