@@ -29,7 +29,7 @@ class Transaction {
 	 * @return {string}
 	 */
 	toString () {
-		return Transaction.encode(this,true);
+		return Transaction.encode(this);
 	}
 };
 	/* encode & decode */
@@ -40,10 +40,10 @@ class Transaction {
 		 * Convert Transaction Object into String
 		 *
 		 * @param {object} transaction
-		 * @param {boolen} isNotForHash : default true
+		 * @param {boolen} isForHash : default true
 		 * @return {string}
 		 */
-		Transaction.encode = function (transaction,isNotForHash=false) { return util.encode(transaction, isNotForHash ? Transaction.transaction_properties : Transaction.hash_properties); };
+		Transaction.encode = function (transaction,isForHash=false) { return util.encode(transaction, isForHash ? Transaction.hash_properties : Transaction.transaction_properties); };
 		
 		/**
 		 * Convert String into Transaction Object
@@ -64,7 +64,7 @@ class Transaction {
 		Transaction.verify = function (transaction) {
 			let tx = Transaction.decode(transaction);
 
-			if (util.sha256(JSON.stringify(Transaction.encode(tx, false))) !== tx.hash)		return false;	//it attacked by someone!!!
+			if (util.sha256(Transaction.encode(tx, true)) !== tx.hash)		return false;	//it attacked by someone!!!
 			if (!Wallet.verifySign(tx.hash, tx.sign, Wallet.publicKey2Pem(tx.publicKey)))	return false;	//it is fake!!!
 			if (Wallet.getAddressFromPublicKey(tx.publicKey) !== tx.address)				return false;	//it is fake!!!
 
@@ -87,13 +87,12 @@ class TransactionBuilder {
 	 * @return {object} : Transaction Object
 	 */
 	sign (wallet) {
-		let data_json = JSON.stringify(this.data);
 		let transaction_json = Transaction.encode({
 			address:	wallet.getAddress(),
 			publicKey:	wallet.getPublicKey(),
-			data:		data_json,
+			data:		JSON.stringify(this.data),
 			timestamp:	Date.now()
-		}, false);
+		}, true);
 		
 		let hash = util.sha256(transaction_json);
 		let sign = wallet.getSign(hash);
