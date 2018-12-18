@@ -132,10 +132,11 @@ class Block {
 		 * @return {string} : hash
 		 */
 		Block.calcDifficulty = function (prev_hash, walletAddress) {
-			if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
+			return 2;
+			/*if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
 			
 			let difficulty = util.Coord.distance(util.Coord(prev_hash), util.Coord(walletAddress));
-			return Math.sqrt(difficulty)/33333 /199 /40 /28;
+			return Math.sqrt(difficulty)/33333 /199 /40 /28;*/
 		};
 
 	/* check functions */
