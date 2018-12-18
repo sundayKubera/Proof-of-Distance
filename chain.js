@@ -165,7 +165,7 @@ class Chain {
 	 */
 	newChain (chain) {
 		if (typeof chain === "string")		chain = JSON.parse(chain);
-		if (!(chain[0] instanceof Block))	chain = chain.map(block => Block.encode(block));
+		if (!(chain[0] instanceof Block))	chain = chain.map(block => Block.decode(block));
 
 		if (chain.length === 0)				return false;
 

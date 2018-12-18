@@ -1,3 +1,5 @@
+const Transaction = require('./transaction.js');
+
 class TransactionPool {
 
 	constructor () {

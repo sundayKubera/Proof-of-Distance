@@ -2,6 +2,7 @@ const Chain = require('./chain.js');
 const Wallet = require('./wallet.js');
 const Transaction = require('./transaction.js');
 const TransactionPool = require('./transactionPool.js');
+const ChainState = require('./chainState.js');
 const Mine = require('./mine.js');
 const util = require('./util.js');
 
@@ -58,8 +59,8 @@ const BlockChain = {
 		let transaction = new Transaction.Builder.Transmission(util.zeros64, this.wallet.getAddress(), 100).sign(this.wallet)+"";
 		let transactions = [transaction, ...this.transactionPool.transactions()].slice(0,100);
 
-		if (this.chain.blocks.length == 0)	return Mine.mineGenesis(transactions);
-		else								return Mine.mineNextBlock(this.chain.topBlock, transactions);
+		if (this.chain.size() == 0)	return Mine.mineGenesis(transactions);
+		else						return Mine.mineNextBlock(this.chain.topBlock, transactions);
 	},
 
 	/**
@@ -97,6 +98,12 @@ const BlockChain = {
 			public:this.wallet.getPublicKey()
 		};
 	},
+
+	calcState () {
+		let chainState = new ChainState();
+		chainState.addBlocks( this.blocks() );
+		return chainState.state;
+	}
 };
 
 	Mine.wallet = BlockChain.wallet;
