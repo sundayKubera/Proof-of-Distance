@@ -67,7 +67,7 @@ const util = require('./util.js');
 				return {
 					addr:this.wallet.getAddress(),
 					public:this.wallet.getPublicKey(),
-					private:this.wallet.save()
+					private:this.wallet.getPrivateKey()
 				};
 			}
 
