@@ -1,11 +1,12 @@
 const Chain = require('./chain.js');
 const Wallet = require('./wallet.js');
 const Transaction = require('./transaction.js');
+const TransactionPool = require('./transactionPool.js');
 const Mine = require('./mine.js');
 const util = require('./util.js');
 
 const BlockChain = {
-	transactions:[],
+	transactionPool:new TransactionPool(),
 	chain:new Chain(),
 	wallet:new Wallet(),
 
@@ -18,26 +19,14 @@ const BlockChain = {
 	 * 
 	 * @param {object[]|string[]} transactions
 	 */
-	addTransactions (transactions) {
-		for (let transaction of transactions) {
-			transaction = transaction+"";
-
-			if (transaction === "padding")						continue;
-			if (!Transaction.verify(transaction))				continue;
-			if (this.transactions.indexOf(transaction) >= 0)	continue;
-
-			this.transactions.push(transaction);
-		}
-	},
+	addTransactions (transactions) { this.transactionPool.addTransactions(transactions); },
 
 	/**
 	 * remove Transactions from Transaction Pool
 	 * 
 	 * @param {object[]|string[]} transactions
 	 */
-	removeTransactions (transactions) {
-		this.transactions = this.transactions.filter(transaction => transactions.indexOf(transaction+"") < 0);
-	},
+	removeTransactions (transactions) { this.transactionPool.removeTransactions(transactions); },
 
 	/**
 	 * New chain Recived
@@ -51,8 +40,8 @@ const BlockChain = {
 	newChain (chain) {
 		let data = this.chain.newChain(chain);
 		if (data) {
-			this.addTransactions(data.removedTransactions);
-			this.removeTransactions(data.addedTransactions);
+			this.transactionPool.addTransactions(data.removedTransactions);
+			this.transactionPool.removeTransactions(data.addedTransactions);
 
 			if (Mine.mining)
 				this.updateMiner();
@@ -67,7 +56,7 @@ const BlockChain = {
 	 */
 	updateMiner () {
 		let transaction = new Transaction.Builder.Transmission(util.zeros64, this.wallet.getAddress(), 100).sign(this.wallet)+"";
-		let transactions = [transaction, ...this.transactions];
+		let transactions = [transaction, ...this.transactionPool.transactions()].slice(0,100);
 
 		if (this.chain.blocks.length == 0)	return Mine.mineGenesis(transactions);
 		else								return Mine.mineNextBlock(this.chain.topBlock, transactions);
