@@ -18,10 +18,11 @@ class TransactionPool {
 		for (let transaction of transactions) {
 			if (transaction === "padding")				continue;
 			if (this.pool.indexOf(transaction) >= 0)	continue;
-			if (!Transaction.verify(transaction))		continue;
+			if (!Transaction.verify(transaction))		return false;
 
 			this.pool.push(transaction);
 		}
+		return true;
 	}
 
 	/**
