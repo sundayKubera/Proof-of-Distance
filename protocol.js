@@ -13,7 +13,7 @@ const Protocol = {
 		msg.timestamp = Date.now();
 		msg.type = type;
 
-		console.log("send", msg);
+		console.log("send", msg.type, msg.timestamp - 1545142500000, msg.blocks ? msg.blocks.length : 0);
 		Protocol.onSend( socket, JSON.stringify(msg) );
 	},
 
@@ -30,7 +30,7 @@ const Protocol = {
 		msg.timestamp = Date.now();
 		msg.type = type;
 
-		console.log("broadCast", msg);
+		console.log("broadCast", msg.type, msg.timestamp - 1545142500000, msg.blocks ? msg.blocks.length : 0);
 		Protocol.onBroadCast( JSON.stringify(msg) );
 	},
 
@@ -45,6 +45,7 @@ const Protocol = {
 			let msg = JSON.parse(msg_string);
 			if (!Protocol[msg.type])	return false;
 
+			console.log("recive", msg.type, msg.timestamp - 1545142500000, msg.blocks ? msg.blocks.length : 0);
 			Protocol[msg.type].handler(socket, msg);
 		} catch (e) {
 			console.error(e);
@@ -109,7 +110,13 @@ Protocol.init = function (BlockChain, SocketServer) {
 		},
 		'chain-response':{
 			messager () { return {blocks:BlockChain.blocks().map(block => block+"")}; },
-			handler (socket, msg) { BlockChain.newChain(msg.blocks); }
+			handler (socket, msg) {
+				if (BlockChain.newChain(msg.blocks)) {
+					if (!BlockChain.AmIminer()) {
+						Protocol.broadCaster('transaction-broadcasting', [BlockChain.makeGetMinerPermissionTransaction()]);
+					}
+				}
+			}
 		},
 
 		/**
@@ -121,8 +128,12 @@ Protocol.init = function (BlockChain, SocketServer) {
 		'chain-broadcasting':{
 			messager () { return {blocks:BlockChain.blocks().map(block => block+"")}; },
 			handler (socket, msg) {
-				if (BlockChain.newChain(msg.blocks))
+				if (BlockChain.newChain(msg.blocks)) {
 					SocketServer.broadCast(msg, socket);
+					if (!BlockChain.AmIminer()) {
+						Protocol.broadCaster('transaction-broadcasting', [BlockChain.makeGetMinerPermissionTransaction()]);
+					}
+				} else Protocol.broadCaster('chain-broadcasting');
 			}
 		},
 	});
@@ -155,8 +166,8 @@ Protocol.init = function (BlockChain, SocketServer) {
 		 *  @param {string[]} transactions
 		 */
 		'transaction-broadcasting':{
-			messager () { return {transactions:BlockChain.transactions.map(transaction => transaction+"")}; },
-			handler (socket, msg) {
+			messager (transactions) { return {transactions:transactions.map(transaction => transaction+"")}; },
+			handler (socket, msg) {;
 				if (BlockChain.addTransactions(msg.transactions))
 					SocketServer.broadCast(msg, socket);
 			}

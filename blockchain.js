@@ -103,6 +103,15 @@ const BlockChain = {
 		let chainState = new ChainState();
 		chainState.addBlocks( this.blocks() );
 		return chainState.state;
+	},
+
+	makeGetMinerPermissionTransaction () {
+		return new Transaction.Builder.GetMinerPermission().sign(this.wallet)+"";
+	},
+
+	AmIminer () {
+		let data = this.calcState()[ this.wallet.getAddress() ];
+		return data && data.miner;
 	}
 };
 
