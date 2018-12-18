@@ -17,17 +17,17 @@ choose the smallest block<br/>
 5. add code update transaction
 
 ### Current System
-	+----------+----------+---------------+-+
-	|          \           \  HttpServer  | |
-	|          /            \             | |FrontEnd
-	| Protocol \             \            | |
-	|          / SocketServer \           | |
-	+----------+---------------+----------+-+
-	|              BlockChain             | |
-	+--------+-------------+-------+------+ |
-	|        | Transaction | Chain | Mine | |
-	|        +-------------+-------+------+ |BackEnd
-	|        Wallet        |    Block     | |
-	|                      +------+-------+ |
-	|                             | Coord | |
-	+-----------------------------+-------+-+
+	+---------------+----------+---------------+-+
+	|               \           \  HttpServer  | |
+	|               /            \             | |FrontEnd
+	|   Protocol    \             \            | |
+	|               / SocketServer \           | |
+	+---------------+---------------+----------+-+
+	|                   BlockChain             | |
+	+-----+---+-----------------+-------+------+ |
+	|     |   | TransactionPool | Chain | Mine | |
+	|     |   + ----------------+-------+------+ |BackEnd
+	|     |       Transaction   |    Block     | |
+	|     +---------------------+------+-------+ |
+	|              Wallet              | Coord | |
+	+----------------------------------+-------+-+

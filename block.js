@@ -63,10 +63,10 @@ class Block {
 	 * Convert Block Object into String
 	 *  does it need Block.encode?
 	 *
-	 * @param {boolean} include_txs : default false => just header
+	 * @param {boolean} include_txs : false => just header
 	 * @return {string}
 	 */
-	toString (include_txs=false) {
+	toString (include_txs=true) {
 		return Block.encode(this, include_txs ? Block.full_block_properties : false);
 	}
 };
