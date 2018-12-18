@@ -67,9 +67,7 @@ class Block {
 	 * @return {string}
 	 */
 	toString (include_txs=false) {
-		return JSON.stringify(
-			Block.encode(this, include_txs ? Block.full_block_properties : false)
-		);
+		return Block.encode(this, include_txs ? Block.full_block_properties : false);
 	}
 };
 	
@@ -79,18 +77,18 @@ class Block {
 
 	/* encode & decode */
 		/**
-		 * Convert Block Object into Array
+		 * Convert Block Object into String
 		 *
 		 * @param {object} block
 		 * @param {string[]} properties : sequence of properties
-		 * @return {array}
+		 * @return {string}
 		 */
-		Block.encode = function (block, properties=false) { return util.encode(block, properties || Block.properties); };
+		Block.encode = function (block, properties=false) { return util.encode(block, properties || Block.block_properties); };
 
 		/**
-		 * Convert Array into Block Object
+		 * Convert String into Block Object
 		 *
-		 * @param {array} block : Block.encode(...)
+		 * @param {string} block : Block.encode(...)
 		 * @return {object} : instanceof Block
 		 */
 		Block.decode = function (block) { return util.decode(block, Block); };

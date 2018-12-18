@@ -162,7 +162,7 @@ class Chain {
 	 * New chain Recived
 	 *  if it's better then My chain then replace to it
 	 * 
-	 * @param {object[]} chain
+	 * @param {string|string[]|object[]} chain
 	 * @return {boolean|object} : false | transaction changes
 	 */
 	newChain (chain) {
@@ -185,5 +185,4 @@ class Chain {
 };
 
 module.exports = Chain;
-
 module.exports.version = 1;

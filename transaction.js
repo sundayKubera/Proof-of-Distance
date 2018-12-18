@@ -29,7 +29,7 @@ class Transaction {
 	 * @return {string}
 	 */
 	toString () {
-		return JSON.stringify(Transaction.encode(this,true));
+		return Transaction.encode(this,true);
 	}
 };
 	/* encode & decode */
@@ -37,18 +37,18 @@ class Transaction {
 		Transaction.hash_properties = "address,publicKey,data,timestamp".split(",");
 
 		/**
-		 * Convert Transaction Object into Array
+		 * Convert Transaction Object into String
 		 *
 		 * @param {object} transaction
 		 * @param {boolen} isNotForHash : default true
-		 * @return {array}
+		 * @return {string}
 		 */
 		Transaction.encode = function (transaction,isNotForHash=false) { return util.encode(transaction, isNotForHash ? Transaction.transaction_properties : Transaction.hash_properties); };
 		
 		/**
-		 * Convert Array into Transaction Object
+		 * Convert String into Transaction Object
 		 *
-		 * @param {array} transaction : Transaction.encode(...)
+		 * @param {string} transaction : Transaction.encode(...)
 		 * @return {object} : instanceof Transaction
 		 */
 		Transaction.decode = function (transaction) { return util.decode(transaction, Transaction); };
@@ -58,14 +58,11 @@ class Transaction {
 		 * Check if Transaction Valid
 		 *  check hash & sign & address
 		 *
-		 * @param {object|array|string} transaction
+		 * @param {string} transaction
 		 * @return {boolen}
 		 */
 		Transaction.verify = function (transaction) {
-			let tx = transaction;
-
-			if (tx+"" === tx)			tx = JSON.parse(tx);
-			if (tx instanceof Array)	tx = Transaction.decode(tx);
+			let tx = Transaction.decode(transaction);
 
 			if (util.sha256(JSON.stringify(Transaction.encode(tx, false))) !== tx.hash)		return false;	//it attacked by someone!!!
 			if (!Wallet.verifySign(tx.hash, tx.sign, Wallet.publicKey2Pem(tx.publicKey)))	return false;	//it is fake!!!
@@ -97,12 +94,11 @@ class TransactionBuilder {
 			data:		data_json,
 			timestamp:	Date.now()
 		}, false);
-		let hash = util.sha256(JSON.stringify(transaction_json));
+		
+		let hash = util.sha256(transaction_json);
 		let sign = wallet.getSign(hash);
 
-		transaction_json.unshift( sign );
-		transaction_json.unshift( hash );
-		return new Transaction(...transaction_json);
+		return new Transaction(hash, sign, ...JSON.parse(transaction_json));
 	}
 };
 
