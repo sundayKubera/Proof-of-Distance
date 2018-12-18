@@ -4,6 +4,7 @@ const util = require('./util.js');
 class Transaction {
 	/**
 	 * Create Basic Transaction Object
+	 *  todo : have to add 'node registration transaction'
 	 *
 	 * @param {string} hash : hash of (address, publicKey, data, timestamp)
 	 * @param {string} sign : wallet.getSign(hash)
@@ -37,7 +38,7 @@ class Transaction {
 		 *
 		 * @param {object} transaction
 		 * @param {boolen} isNotForHash : default true
-		 * @return {string}
+		 * @return {array}
 		 */
 		Transaction.encode = function (transaction,isNotForHash=false) {//Object => Array
 			if (isNotForHash)
@@ -47,7 +48,7 @@ class Transaction {
 		/**
 		 * Convert Array into Transaction Object
 		 *
-		 * @param {string} transaction : Transaction.encode(...)
+		 * @param {array} transaction : Transaction.encode(...)
 		 * @return {object} : instanceof Transaction
 		 */
 		Transaction.decode = function (transaction) {//(Array | String) => Object
