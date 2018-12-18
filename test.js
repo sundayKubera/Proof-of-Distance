@@ -64,4 +64,18 @@ function chainWorkTest() {
 	BlockChain.updateMiner();
 };
 
-chainWorkTest();
+function chainStateTest() {
+	const util = require('./util.js');
+	const Wallet = require('./wallet.js');
+	const Transaction = require('./transaction.js');
+	const ChainState = require('./chainState.js');
+
+	let chainState = new ChainState();
+	let wallet = new Wallet();
+	let transaction = new Transaction.Builder.Transmission(util.zeros64, wallet.getAddress(), 100).sign(wallet)+"";
+
+	chainState.addTransaction( transaction );
+
+};
+
+chainStateTest();

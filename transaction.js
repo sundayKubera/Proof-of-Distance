@@ -101,7 +101,6 @@ class TransactionBuilder {
 	}
 };
 
-
 class TransmissionBuilder extends TransactionBuilder {
 	/**
 	 * Create Basic TransmissonTransaction Builder Object
