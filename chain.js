@@ -19,7 +19,7 @@ class Chain {
 	 */
 	block (i) { return this.chain[i]; }
 	blocks () { return [...this.chain]; }
-	size () { return this.chain.length; }
+	size () { return this.chain.length ? this.topBlock.index : 0; }
 
 	/**
 	 * Get Top Block
@@ -37,9 +37,9 @@ class Chain {
 	isChainValid (chain) {
 		let i = 0, prev_hash = "";
 		for (let block of chain) {
-			if (block.txs.length == 0 && !Block.isBlockHeadValid(block))	return false;
-			if (block.txs.length && !Block.isBlockValid(block))				return false;
-			if (i > 0 && block.prev_hash !== prev_hash)						return false;
+			if (block.txs.length == 0 && !Block.isBlockHeadValid(block))	{console.log('chain : block head not valid');return false;}
+			if (block.txs.length && !Block.isBlockValid(block))				{console.log('chain : block not valid');return false;}
+			if (i > 0 && block.prev_hash !== prev_hash)						{console.log('chain : prev hash not valid');return false;}
 			prev_hash = block.hash;
 			i++;
 		}
@@ -98,14 +98,16 @@ class Chain {
 		if (this.chain.length === 0)					return true;
 		if (chain[0].index === this.topBlock.index+1)	return true;
 
-		let longerLength = Math.max(chain.length, this.chain.length);
-		let newChainScore = this.scoreChain(chain);
-		let currChainScore = this.scoreChain(this.chain);
+		let newChainLength = Math.max(...chain.map(block => block.index));
+		let currChainLength = Math.max(...this.chain.map(block => block.index));
+		let longerLength = Math.max(newChainLength, currChainLength);
+		let newChainScore = this.scoreChain(chain, longerLength, newChainLength);
+		let currChainScore = this.scoreChain(this.chain, longerLength, currChainLength);
 
 		if (newChainScore < currChainScore)												return true;
 		else if (newChainScore == currChainScore && chain.length > this.chain.length)	return true;
 
-		console.log("not accept", newChainScore, currChainScore, chain.length, this.chain.length);
+		console.log('chain : is not a better chain', newChainScore, currChainScore, newChainLength, currChainLength);
 		return false;
 	}
 
@@ -117,7 +119,7 @@ class Chain {
 	 * @param {int} longerLength : if Chain is shorter then Score is lower, so add Average Score
 	 * @return {double}
 	 */
-	scoreChain (chain, longerLength=0) {
+	scoreChain (chain, longerLength, myLength) {
 		let resultScore = 0;
 
 		for (let block of chain) {
@@ -125,8 +127,8 @@ class Chain {
 			resultScore += score;
 		}
 
-		if (chain.length < longerLength)
-			resultScore += resultScore/chain.length * (longerLength-chain.length);
+		if (myLength < longerLength)
+			resultScore += (resultScore/chain.length) * (longerLength-myLength);
 
 		return resultScore;
 	}
@@ -177,9 +179,11 @@ class Chain {
 			return false;
 		}
 
-		if (!this.isChainValid(chain))		return false;
-		if (!this.isSameOriginChain(chain))	return false;
-		if (!this.isBetterChain(chain))		return false;
+		if (!this.isChainValid(chain))			return false;
+		if (this.chain.length) {
+			if (!this.isSameOriginChain(chain))	return false;
+			if (!this.isBetterChain(chain))		return false;
+		}
 		return this.replaceChain(chain);
 	}
 };
