@@ -6,12 +6,7 @@ const Mine = {
 	mining:false,
 	data:{nonce:0, miner:null, end:false, block:null},
 
-	startMine () {
-		if (!this.mining) {
-			console.log("mining start");
-			this.mineLoop(this.mining = true);
-		}
-	},
+	startMine () { this.mining = true; },
 	stopMine () { this.mining = false; },
 	isMining () { return this.mining; },
 
@@ -20,12 +15,12 @@ const Mine = {
 	 *  random mining
 	 */
 	mineLoop () {
-		for (let i=0; !this.data.end && i < 1; i++) {
+		for (let i=0; this.mining && !this.data.end && i < 1000; i++) {
 			try {
 				let block = this.data.miner.mine(this.data.nonce, this.wallet);
 				if (block) {
-					this.data.block = block;
 					this.data.end = true;
+					this.data.block = block;
 					this.onMine(this.data.block);
 				}
 				this.data.nonce = Math.floor(Math.random()*10000);
@@ -50,7 +45,8 @@ const Mine = {
 			nonce:0, end:false, block:null,
 			miner:new Block.Miner(index, version, prev_hash, txs)
 		};
-		console.log("miner update");
+
+		this.data.miner.mine(this.data.nonce, this.wallet);
 		this.startMine();
 	},
 
@@ -60,6 +56,7 @@ const Mine = {
 	 * @param {object[]|string[]} txs
 	 */
 	mineGenesis(txs) {
+		console.log("mine : mineGenesis");
 		return this.mine(0, 1, util.zeros64, txs);
 	},
 
@@ -70,6 +67,7 @@ const Mine = {
 	 * @param {object[]|string[]} txs
 	 */
 	mineNextBlock(block, txs=[]) {
+		console.log("mine : mineNextBlock", block.index+1, txs.length);
 		return this.mine(block.index+1, block.version, block.hash, txs);
 	},
 
@@ -80,6 +78,8 @@ const Mine = {
 	 */
 	onMine (block) {},
 };
+
+Mine.mineLoop();
 
 module.exports = Mine;
 module.exports.version = 1;

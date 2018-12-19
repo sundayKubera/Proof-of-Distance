@@ -10,6 +10,7 @@ const BlockChain = {
 	transactionPool:new TransactionPool(),
 	chain:new Chain(),
 	wallet:new Wallet(),
+	state:new ChainState(),
 
 	chainLength () { return this.chain.size(); },
 	blocks () { return this.chain.blocks() },
@@ -18,16 +19,30 @@ const BlockChain = {
 	/**
 	 * add Transactions to Transaction Pool
 	 * 
-	 * @param {object[]|string[]} transactions
+	 * @param {string[]} transactions
+	 * @param {boolean} updateMiner
+	 * @result {boolean}
 	 */
-	addTransactions (transactions) { this.transactionPool.addTransactions(transactions); },
+	addTransactions (transactions, updateMiner=true) {
+		let isAdded = this.transactionPool.addTransactions(transactions);
+		if (isAdded && updateMiner)
+			this.updateMiner();
+		return isAdded
+	},
 
 	/**
 	 * remove Transactions from Transaction Pool
 	 * 
-	 * @param {object[]|string[]} transactions
+	 * @param {string[]} transactions
+	 * @param {boolean} updateMiner
+	 * @result {boolean}
 	 */
-	removeTransactions (transactions) { this.transactionPool.removeTransactions(transactions); },
+	removeTransactions (transactions, updateMiner=true) {
+		let isRemoved = this.transactionPool.removeTransactions(transactions);
+		if (isRemoved && updateMiner)
+			this.updateMiner();
+		return isRemoved;
+	},
 
 	/**
 	 * New chain Recived
@@ -41,11 +56,16 @@ const BlockChain = {
 	newChain (chain) {
 		let data = this.chain.newChain(chain);
 		if (data) {
-			this.transactionPool.addTransactions(data.removedTransactions);
-			this.transactionPool.removeTransactions(data.addedTransactions);
+			console.log('blockchain : chain-accepted', Mine.mining);
 
-			if (Mine.mining)
-				this.updateMiner();
+			this.state = new ChainState();
+			this.state.addBlocks( this.blocks() );
+
+			let isAdded = this.transactionPool.addTransactions(data.removedTransactions, false);
+			let isRemoved = this.transactionPool.removeTransactions(data.addedTransactions, false);
+
+			this.updateMiner();
+
 			return true;
 		}
 		return false;
@@ -56,11 +76,14 @@ const BlockChain = {
 	 *  make publish transaction
 	 */
 	updateMiner () {
-		let transaction = new Transaction.Builder.Transmission(util.zeros64, this.wallet.getAddress(), 100).sign(this.wallet)+"";
+		if (!this.AmIminer())
+			this.makeGetMinerPermissionTransaction();
+
+		let transaction = new Transaction.Transmission(util.zeros64, this.wallet.getAddress(), 100).sign(this.wallet)+"";
 		let transactions = [transaction, ...this.transactionPool.transactions()].slice(0,100);
 
-		if (this.chain.size() == 0)	return Mine.mineGenesis(transactions);
-		else						return Mine.mineNextBlock(this.chain.topBlock, transactions);
+		if (this.chain.blocks().length == 0)	return Mine.mineGenesis(transactions);
+		else									return Mine.mineNextBlock(this.chain.topBlock, transactions);
 	},
 
 	/**
@@ -70,6 +93,7 @@ const BlockChain = {
 	 * @param {object} block
 	 */
 	onMine (block) {
+		console.log('blockchain : mine new block', block.txs.length);
 		if (this.newChain([block]))
 			this.onOnMine(block);
 	},
@@ -99,16 +123,33 @@ const BlockChain = {
 		};
 	},
 
+	/**
+	 * calculate Chain State
+	 * 
+	 * @return {object} : {[addr] : state}
+	 */
 	calcState () {
-		let chainState = new ChainState();
-		chainState.addBlocks( this.blocks() );
-		return chainState.state;
+		return this.state.state;
 	},
 
+	/**
+	 * make GetMinerPermisson Transaction(once)
+	 * 
+	 * @return {object} transaction
+	 */
 	makeGetMinerPermissionTransaction () {
-		return new Transaction.Builder.GetMinerPermission().sign(this.wallet)+"";
+		let transaction = new Transaction.GetMinerPermission().sign(this.wallet)+"";
+
+		this.makeGetMinerPermissionTransaction = () => transaction;
+		this.addTransactions([transaction]);
+		return transaction;
 	},
 
+	/**
+	 * is my GetMinerPermissonTransaction in current chain
+	 * 
+	 * @return {boolean}
+	 */
 	AmIminer () {
 		let data = this.calcState()[ this.wallet.getAddress() ];
 		return data && data.miner;
@@ -117,6 +158,7 @@ const BlockChain = {
 
 	Mine.wallet = BlockChain.wallet;
 	Mine.onMine = BlockChain.onMine.bind(BlockChain);
+	
 
 module.exports = BlockChain;
 module.exports.version = 1;

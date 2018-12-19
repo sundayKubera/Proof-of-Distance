@@ -16,7 +16,7 @@ choose the smallest block<br/>
 4. rebuild whole system(it's too dirty too)
 5. add code update transaction
 
-### Current System
+### Old System
 	+------------------\-------------------\----------------+-+
 	|    Protocol     <->   SocketServer    \  HttpServer   | |
 	+------------------\---------------------\--------------+ |FrontEnd
@@ -28,5 +28,10 @@ choose the smallest block<br/>
 	|     +----------------------------------+------+-------+ |
 	|                     Wallet                    | Coord | |
 	+-----------------------------------------------+-------+-+
-	
-currently have some error with Chain Choose
+
+### Target System
+	+----------+--------------+------------+-------------+
+	| Protocol | SocketServer | BlockChain | Transaction |... anything else
+	+----v^----+------v^------+-----v^-----+------v------+ 
+	|                     Storage & Bus                  |
+	+----------------------------------------------------+

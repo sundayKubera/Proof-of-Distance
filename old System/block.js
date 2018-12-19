@@ -132,11 +132,12 @@ class Block {
 		 * @return {string} : hash
 		 */
 		Block.calcDifficulty = function (prev_hash, walletAddress) {
-			return 2;
-			/*if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
+			if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
 			
 			let difficulty = util.Coord.distance(util.Coord(prev_hash), util.Coord(walletAddress));
-			return Math.sqrt(difficulty)/33333 /199 /40 /28;*/
+			for (let i=0; i<5; i++)	difficulty = Math.sqrt(difficulty);
+			return difficulty - 2;
+			//return Math.sqrt(difficulty)/33333 /199 /40 /28;
 		};
 
 	/* check functions */
@@ -201,7 +202,7 @@ class Block {
 		 */
 		Block.isDifficultValid = function (block) {
 			let difficulty = Block.calcDifficulty(block.prev_hash, Wallet.getAddressFromPublicKey(block.publicKey));
-			return difficulty < 0 || parseInt(block.hash.substr(0,Math.ceil(difficulty)), 16) === 0;
+			return difficulty < 0 || parseInt(block.hash.substr(0,Math.round(difficulty)), 16) === 0;
 		};
 
 		/**
@@ -283,6 +284,7 @@ class Block {
 			try {
 				Block.isPropertiesValid(this, true);
 			} catch (e) {
+				console.error(e);
 				return false;
 			}
 
