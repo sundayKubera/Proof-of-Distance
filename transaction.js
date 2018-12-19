@@ -99,6 +99,18 @@ class TransactionBuilder {
 
 		return new Transaction(hash, sign, ...JSON.parse(transaction_json));
 	}
+
+
+	/**
+	 * verify Transaction( to use in verify accepted transactions )
+	 *
+	 * @param {object} transaction : to verify
+	 * @param {object} block : to use in verify
+	 * @return {boolean}
+	 */
+	static verify (transaction, block) {
+		return Transaction.verify(transaction);
+	}
 };
 
 class TransmissionBuilder extends TransactionBuilder {
@@ -119,12 +131,17 @@ class TransmissionBuilder extends TransactionBuilder {
 		this.data.amount = amount;
 	}
 
-	sign (wallet) {
-		if (this.data.sendAddr === util.zeros64) {
-			if (wallet.getAddress() !== this.data.receiveAddr)	throw new Error('TransmissionBuilder : sign : unValid wallet to sign');
-		} else if (wallet.getAddress() !== this.data.sendAddr)	throw new Error('TransmissionBuilder : sign : unValid wallet to sign');
-
-		return TransactionBuilder.prototype.sign.call(this, wallet);
+	/**
+	 * verify Transaction Data
+	 *
+	 * @param {object} transaction : to verify
+	 * @return {boolean}
+	 */
+	static verify (transaction) {
+		if (transaction.data.sendAddr === util.zeros64) {
+			if (transaction.address !== transaction.data.receiveAddr)	return false;
+		} else if (transaction.address !== transaction.data.sendAddr)	return false;
+		return true;
 	}
 }
 
@@ -133,11 +150,25 @@ class GetMinerPermissionBuilder extends TransactionBuilder {
 		super();
 		this.data.type = 'get-miner-permission';
 	}
+
+	/**
+	 * verify Transaction
+	 *
+	 * @param {object} transaction : to verify
+	 * @return {boolean}
+	 */
+	static verify (transaction, block) {
+		let sign = transaction.sign,
+			data = Transaction.encode(transaction,true),
+			publicKey = Wallet.publicKey2Pem(block.publicKey);
+
+		return Wallet.verifySign(data, sign, publicKey);
+	}
 };
 
 module.exports = Transaction;
 module.exports.Builder = TransactionBuilder;
-module.exports.Builder.Transmission = TransmissionBuilder;
-module.exports.Builder.GetMinerPermission = GetMinerPermissionBuilder;
+module.exports.Transmission = TransmissionBuilder;
+module.exports.GetMinerPermission = GetMinerPermissionBuilder;
 
 module.exports.version = 1;

@@ -65,29 +65,23 @@ class ChainState {
 				this['create-address'](state, {addr:data.receiveAddr});
 				this['create-address'](state, {addr:data.sendAddr});
 
-				if (data.sendAddr === util.zeros64) {
-					if (Wallet.getAddressFromPublicKey(transaction.publicKey) !== data.receiveAddr)	return false;
-				} else if (Wallet.getAddressFromPublicKey(transaction.publicKey) !== data.sendAddr)	return false;
-
-				state[data.receiveAddr].amount += data.amount;
-				state[data.sendAddr].amount -= data.amount;
+				if (Transaction.Transmission.verify(transaction)) {
+					state[data.receiveAddr].amount += data.amount;
+					state[data.sendAddr].amount -= data.amount;
+				}
 			},
 
 			'get-miner-permission' (state, dataObject, transaction) {
 				this['create-address'](state, {addr:transaction.address});
-
-				let sign = transaction.sign,
-					data = Transaction.encode(transaction,true),
-					publicKey = Wallet.publicKey2Pem(state.block.publicKey);
-
-				if (!Wallet.verifySign(data, sign, publicKey))	return false;
-
-				state[transaction.addr].miner = {
-					when:state.index,
-					blockHash:block.hash,
-					transactionHash:transaction.hash,
-					name:util.sha256(state.block.hash + transaction.hash),
-				};
+				
+				if (Transaction.GetMinerPermission.verify(transaction,state.block)) {
+					state[transaction.addr].miner = {
+						when:state.index,
+						blockHash:block.hash,
+						transactionHash:transaction.hash,
+						name:util.sha256(state.block.hash + transaction.hash),
+					};
+				}
 			},
 		};
 
