@@ -13,7 +13,7 @@ const Protocol = {
 		msg.timestamp = Date.now();
 		msg.type = type;
 
-		console.log("send", msg.type, msg.timestamp - 1545142500000, msg.blocks ? msg.blocks.length : 0);
+		console.log("-----> ", msg.type, msg.timestamp % 100000, msg.blocks ? msg.blocks.length : 0);
 		Protocol.onSend( socket, JSON.stringify(msg) );
 	},
 
@@ -30,7 +30,7 @@ const Protocol = {
 		msg.timestamp = Date.now();
 		msg.type = type;
 
-		console.log("broadCast", msg.type, msg.timestamp - 1545142500000, msg.blocks ? msg.blocks.length : 0);
+		console.log("-----> ", msg.type, msg.timestamp % 100000, msg.blocks ? msg.blocks.length : 0);
 		Protocol.onBroadCast( JSON.stringify(msg) );
 	},
 
@@ -45,7 +45,7 @@ const Protocol = {
 			let msg = JSON.parse(msg_string);
 			if (!Protocol[msg.type])	return false;
 
-			console.log("recive", msg.type, msg.timestamp - 1545142500000, msg.blocks ? msg.blocks.length : 0);
+			console.log("\t\t\t\t<----- ", msg.type, msg.timestamp % 100000, msg.blocks ? msg.blocks.length : 0);
 			Protocol[msg.type].handler(socket, msg);
 		} catch (e) {
 			console.error(e);
@@ -112,9 +112,8 @@ Protocol.init = function (BlockChain, SocketServer) {
 			messager () { return {blocks:BlockChain.blocks().map(block => block+"")}; },
 			handler (socket, msg) {
 				if (BlockChain.newChain(msg.blocks)) {
-					if (!BlockChain.AmIminer()) {
+					if (!BlockChain.AmIminer()) 
 						Protocol.broadCaster('transaction-broadcasting', [BlockChain.makeGetMinerPermissionTransaction()]);
-					}
 				}
 			}
 		},
@@ -129,11 +128,15 @@ Protocol.init = function (BlockChain, SocketServer) {
 			messager () { return {blocks:BlockChain.blocks().map(block => block+"")}; },
 			handler (socket, msg) {
 				if (BlockChain.newChain(msg.blocks)) {
+					console.log('protocol : chain-accepted');
+
 					SocketServer.broadCast(msg, socket);
-					if (!BlockChain.AmIminer()) {
+					
+					if (!BlockChain.AmIminer())
 						Protocol.broadCaster('transaction-broadcasting', [BlockChain.makeGetMinerPermissionTransaction()]);
-					}
-				} else Protocol.broadCaster('chain-broadcasting');
+				} else {
+					console.log('protocol : chain-not-accepted');
+				}
 			}
 		},
 	});
