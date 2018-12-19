@@ -16,7 +16,7 @@ choose the smallest block<br/>
 4. rebuild whole system(it's too dirty too)
 5. add code update transaction
 
-### Current System
+### Old System
 	+------------------\-------------------\----------------+-+
 	|    Protocol     <->   SocketServer    \  HttpServer   | |
 	+------------------\---------------------\--------------+ |FrontEnd
