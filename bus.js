@@ -7,24 +7,24 @@ class Bus extends EventEmitter {
 
 
 	/**
-	 * emit that needs Response
+	 * emit that needs Return
 	 *
 	 * @return {object} : promise
 	 */
-	request (name, ...args) {
+	call (name, ...args) {
 		return new Promise((resolve, reject) => {
 			this.emit(name, {resolve, reject}, ...args);
 		});
 	}
 
 	/**
-	 * on that makes Response
+	 * on that makes Return
 	 *
 	 * @param {string|sybole} name
 	 * @param {function} listener
 	 * @return {object} : self
 	 */
-	onRequest (name, listener) {
+	onCall (name, listener) {
 		return this.on(name, listener.listener = (response, ...args) => {
 			try {
 				response.resolve(listener(...args));
@@ -35,13 +35,13 @@ class Bus extends EventEmitter {
 	}
 
 	/**
-	 * off that makes Response
+	 * off that makes Return
 	 *
 	 * @param {string|sybole} name
 	 * @param {function} listener
 	 * @return {object} : self
 	 */
-	offRequest (name, listener) {
+	offCall (name, listener) {
 		return this.off(name, listener.listener);
 	}
 }
