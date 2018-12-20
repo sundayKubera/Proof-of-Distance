@@ -9,6 +9,8 @@ class Bus extends EventEmitter {
 	/**
 	 * emit that needs Return
 	 *
+	 * @param {string|sybole} name
+	 * @param {...anything} args
 	 * @return {object} : promise
 	 */
 	call (name, ...args) {
@@ -29,7 +31,9 @@ class Bus extends EventEmitter {
 			try {
 				response.resolve(listener(...args));
 			} catch (error) {
-				response.reject(error);
+				console.error(error);
+				response.resolve(false);
+				//response.reject(error);
 			}
 		});
 	}
