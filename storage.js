@@ -36,7 +36,11 @@ class Stroage {
 	 *
 	 * @return {stirng[]}
 	 */
-	keys () { return Object.keys().filter(key => key.startsWith(this.nameSpace)) }
+	keys () {
+		return Object.keys(STORAGE)
+			.filter(key => key.startsWith(this.nameSpace))
+			.map(key => key.substr(this.nameSpace.length));
+	}
 
 	/**
 	 * create view of nameSpace
