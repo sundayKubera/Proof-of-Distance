@@ -14,6 +14,50 @@ function sha256 (data) {
 
 module.exports.sha256 = sha256;
 
+/**
+ * Calc Vector from Hash String
+ *
+ * @param {stirng} hash		:  0000000000000000 00000000 00000000 00000000 00000000 00000000 00000000  <- hex string
+ * @param {int[]} structure	: |       16       |   8    |   8    |   8    |   8    |   8    |   8    | <- like this
+ * @return {int[]} : vector
+ */
+function Coord (hash, structure=false) {
+	let coord = [];
+
+	structure = structure || Coord.structure;
+
+	for (let i=0, start=0; i<structure.length; i++) {
+		let part = hash.substr(start, structure[i]);
+
+		if (i > 0)	coord.push( parseInt(part, 16) || 0 );
+		
+		start += structure[i];
+	}
+
+	return coord.map(val => parseInt(val,16) || 0);
+};
+	Coord.structure = [8+8,8,8,8,8,8,8];	//skip first(zeros), sum = 64
+	//Coord.structure = [4+12,12,12,12,12];
+
+	/**
+	 * Calc Distance**2 between two Vectors with no
+	 *
+	 * @param {int[]} coordA
+	 * @param {int[]} coordV
+	 * @return {int} : distance
+	 */
+	Coord.distance = function (coordA, coordB) {
+		if (coordA.length != coordB.length)	return Infinity;
+
+		var dist = 0;
+		for (let i=0; i<coordA.length; i++)
+			dist += (coordA[i]-coordB[i])*(coordA[i]-coordB[i]);
+		return dist;
+	};
+
+module.exports.Coord = Coord;
+
+
 /* encode & decode */
 
 	/**

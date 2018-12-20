@@ -68,7 +68,73 @@ module.exports = (Storage,Bus) => {
 		 * @return {string}
 		 */
 		toString (include_txs=true) { return Block.encode(this, include_txs ? Block.full_block_properties : false); }
+
+		/* encode & decode */
+			/**
+			 * Convert Block Object into String
+			 *
+			 * @param {object} block
+			 * @param {string[]} properties : sequence of properties
+			 * @return {string}
+			 */
+			static encode (block, properties=false) { return util.encode(block, properties || Block.block_properties); }
+
+			/**
+			 * Convert String into Block Object
+			 *
+			 * @param {string} block : Block.encode(...)
+			 * @return {object} : instanceof Block
+			 */
+			static decode (block) { return util.decode(block, Block); }
+
+		/* calc functions */
+			/**
+			 * Calculate Hash of Block
+			 *
+			 * @param {object} block : Block to hash
+			 * @return {string} : hash
+			 */
+			static calcBlockHash (block) { return util.sha256(Block.encode(block, Block.hash_properties)); }
+
+			/**
+			 * Calculate MrKl Hash of transactions
+			 *
+			 * @param {string[]} txs : transactions to hash
+			 * @return {string} : hash
+			 */
+			static calcMrklHash (txs) {
+				if (txs.length % 2 !== 0)	txs = [...txs, "padding"];
+
+				let hashes = txs.map(tx => util.sha256(tx));
+				while (hashes.length > 1) {
+					let nextHashBuffer = [];
+					for (let i=0; i<hashes.length; i+=2)
+						nextHashBuffer.push( util.sha256(hashes[i]+hashes[i+1]) );
+					hashes = nextHashBuffer;
+				}
+				return hashes[0];
+			}
+
+			/**
+			 * Calculate Difficulty of block
+			 *
+			 * @param {string} prev_hash
+			 * @param {string} walletAddress : it needs to be replace with 'node name'
+			 * @return {string} : hash
+			 */
+			static calcDifficulty (prev_hash, walletAddress) {
+				if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
+				
+				let difficulty = util.Coord.distance(util.Coord(prev_hash), util.Coord(walletAddress));
+				//return Math.sqrt(difficulty)/33333 /199 /40 /28;
+
+				for (let i=0; i<5; i++)	difficulty = Math.sqrt(difficulty);
+				return difficulty - 2;
+			}
 	};
+		Block.full_block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce,hash,sign,txs".split(",");
+		Block.block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce,hash,sign".split(",");
+		Block.hash_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce".split(",");
 
 	Bus.on('init', () => {
 
