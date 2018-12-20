@@ -77,22 +77,6 @@ module.exports = (Storage,Bus) => {
 	 *	});
 	 */
 
-	//Chain
-		Storage.call('Protocol.register','Chain.Request', class ChainRequest {
-			static async make (...args) { return []; }
-			static handler (addr, msg) { Bus.emit('Protocol.send', addr, 'Chain.Response'); }
-		});
-		Storage.call('Protocol.register','Chain.Response', class ChainResponse {
-			constructor (chain) { this.chain = chain; }
-			static async make () { return [Storage.get('Chain.chain')];  }
-			static handler (addr, msg) { Bus.emit('Chain.newChain', msg.chain); }
-		});
-		Storage.call('Protocol.register','Chain.BroadCast', class ChainBroadCast {
-			constructor (chain) { this.chain = chain; }
-			static async make (transactions) { return [transactions];  }
-			static handler (addr, msg) { Bus.emit('Chain.newChain', msg.transactions); }
-		});
-
 	Bus.once('init',() => {
 		Bus.on('Protocol.send', Protocol.messager.bind(Protocol));
 		Bus.on('Protocol.broadcast', Protocol.broadCaster.bind(Protocol));
