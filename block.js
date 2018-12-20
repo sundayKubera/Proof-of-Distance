@@ -131,13 +131,104 @@ module.exports = (Storage,Bus) => {
 				for (let i=0; i<5; i++)	difficulty = Math.sqrt(difficulty);
 				return difficulty - 2;
 			}
+
+		/* check functions */
+			/**
+			 * Check Param Types Valid
+			 *
+			 * @param {object} block
+			 * @return {boolean}
+			 */
+			static isPropertiesValid (block, isMiner=false) {//ToDo : publicKey, sign check
+				if (!Number.isInteger(block.index))			throw new Error(`Block : isPropertiesValid : index must be a int`);
+				if (!Number.isInteger(block.version))		throw new Error(`Block : isPropertiesValid : version must be a int`);
+
+				if (typeof block.prev_hash !== "string")	throw new Error(`Block : isPropertiesValid : prev_hash must be a string`);
+				else if (block.prev_hash.length !== 64)		throw new Error(`Block : isPropertiesValid : prev_hash.length must be 64`);
+
+				if (typeof block.mrkl_hash !== "string")	throw new Error(`Block : isPropertiesValid : mrkl_hash must be a string`);
+				else if (block.mrkl_hash.length !== 64)		throw new Error(`Block : isPropertiesValid : mrkl_hash.length must be 64`);
+
+				if (!Number.isInteger(block.timestamp))		throw new Error(`Block : isPropertiesValid : timestamp must be a int`);
+				else if (block.timestamp > Date.now())		throw new Error(`Block : isPropertiesValid : timestamp can't bigger then 'Date.now()'`);
+
+				if (!Number.isInteger(block.txsCount))		throw new Error(`Block : isPropertiesValid : txsCount must be a int`);
+				if (!Number.isInteger(block.txsSize))		throw new Error(`Block : isPropertiesValid : txsSize must be a int`);
+				if (block.txsCount > block.txsSize)		throw new Error(`Block : isPropertiesValid : '[].length' can't bigger then 'JSON.stringify([]).length'`);
+
+				if (!Number.isInteger(block.nonce))			throw new Error(`Block : isPropertiesValid : nonce must be a int`);
+
+				if (!isMiner) {
+					if (typeof block.hash !== "string")			throw new Error(`Block : isPropertiesValid : hash must be a string`);
+					else if (block.hash.length !== 64)			throw new Error(`Block : isPropertiesValid : hash.length must be 64`);	
+
+					//sign, publicKey
+				}
+			}
+			
+			/**
+			 * Check blocks difficulty & hash & sign & mrkl_hash
+			 *
+			 * @param {object} block
+			 * @return {boolean}
+			 */
+			static isBlockValid (block) { return Block.isBlockHeadValid(block) && Block.isMrklHashValid(block.mrkl_hash, block.txs); }
+
+			/**
+			 * Check blocks difficulty & hash & sign
+			 *
+			 * @param {object} block
+			 * @return {boolean}
+			 */
+			static isBlockHeadValid (block) { return Block.isDifficultValid(block) && Block.isBlockHashValid(block) && Block.isSignValid(block); }
+
+			/**
+			 * Check blocks difficulty
+			 *
+			 * @param {object} block
+			 * @return {boolean}
+			 */
+			static isDifficultValid (block) {
+				let difficulty = Block.calcDifficulty(block.prev_hash, Storage.call('Wallet.getAddressFromPublicKey',block.publicKey));
+				return difficulty < 0 || parseInt(block.hash.substr(0,Math.round(difficulty)), 16) === 0;
+			}
+
+			/**
+			 * Check blocks hash
+			 *
+			 * @param {object} block
+			 * @return {boolean}
+			 */
+			static isBlockHashValid (block) { return block.hash === Block.calcBlockHash(block); }
+
+			/**
+			 * Check blocks sign
+			 *
+			 * @param {object} block
+			 * @return {boolean}
+			 */
+			static isSignValid (block) { return Storage.call('Wallet.verifySign',Block.calcBlockHash(block), block.sign, block.publicKey); }
+
+			/**
+			 * Check blocks mrkl hash
+			 *
+			 * @param {string} mrkl_hash
+			 * @param {string[]} txs
+			 * @return {boolean}
+			 */
+			static isMrklHashValid(mrkl_hash, txs) { return mrkl_hash === Block.calcMrklHash(txs); }
 	};
 		Block.full_block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce,hash,sign,txs".split(",");
 		Block.block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce,hash,sign".split(",");
 		Block.hash_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce".split(",");
 
 	Bus.on('init', () => {
-
+		Storage.set('Block',Block);
+		Storage.set('Block.create', (...args) => new Block(...args)+"");
+		Storage.set('Block.encode', Block.encode);
+		Storage.set('Block.decode', Block.decode);
+		Storage.set('Block.isBlockValid', Block.isBlockValid);
+		Storage.set('Block.isBlockHeadValid', Block.isBlockHeadValid);
 	});
 };
 module.exports.version = 2;
