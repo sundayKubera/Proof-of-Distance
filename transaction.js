@@ -169,15 +169,15 @@ module.exports = (Storage,Bus) => {
 		}
 	};
 
+	Storage.set('Transaction', Transaction);
+	Storage.set('Transaction.create', (...args) => new Transaction(...args));
+	Storage.set('Transaction.verify', Transaction.verify);
+	Storage.set('Transaction.encode', Transaction.encode);
+	Storage.set('Transaction.decode', Transaction.decode);
+
+	Storage.set('Transaction.Builder.register', TransactionBuilder.register);
+
 	Bus.on('init', () => {
-		Storage.set('Transaction', Transaction);
-		Storage.set('Transaction.create', (...args) => new Transaction(...args));
-		Storage.set('Transaction.verify', Transaction.verify);
-		Storage.set('Transaction.encode', Transaction.encode);
-		Storage.set('Transaction.decode', Transaction.decode);
-
-		Storage.set('Transaction.Builder.register', TransactionBuilder.register);
-
 		Storage.call('Transaction.Builder.register', 'Builder', TransactionBuilder);
 		Storage.call('Transaction.Builder.register', 'Transmisson', TransmissionBuilder);
 		Storage.call('Transaction.Builder.register', 'MinerPermission', MinerPermissionBuilder);

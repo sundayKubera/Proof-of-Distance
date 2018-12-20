@@ -49,11 +49,11 @@ module.exports = (Storage,Bus) => {
 		static handler (addr, msg) { Storage.call('TransactionPool.addTransactions', msg.transactions); }
 	};
 
-	Bus.once('init', () => {
-		Storage.set('TransactionPool.transactions', () => [...TransactionPool.pool]);
-		Storage.set('TransactionPool.addTransactions', TransactionPool.addTransactions.bind(this));
-		Storage.set('TransactionPool.removeTransactions', TransactionPool.removeTransactions.bind(this));
+	Storage.set('TransactionPool.transactions', () => [...TransactionPool.pool]);
+	Storage.set('TransactionPool.addTransactions', TransactionPool.addTransactions.bind(this));
+	Storage.set('TransactionPool.removeTransactions', TransactionPool.removeTransactions.bind(this));
 
+	Bus.once('init', () => {
 		//Transaction
 			Storage.call('Protocol.register','Transaction.Request', TransactionRequest);
 			Storage.call('Protocol.register','Transaction.Response', TransactionResponse);

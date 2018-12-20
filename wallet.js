@@ -80,20 +80,18 @@ module.exports = (Storage,Bus) => {
 		},
 	};
 
+	Storage.set('Wallet.getSign', Wallet.getSign.bind(Wallet));
+	Storage.set('Wallet.verifySign', Wallet.verifySign.bind(Wallet));
+	Storage.set('Wallet.getAddressFromPublicKey', Wallet.getAddressFromPublicKey.bind(Wallet));
+
 	Bus.on('init', () => {
 		if (Storage.has("ENV.Wallet.privateKey"))
 			Wallet.init(Storage.get('ENV.Wallet.privateKey'));
 		else
 			Wallet.init();
-	});
 
-	Bus.on('init', () => {
 		Storage.set('Wallet.address', Wallet.address);
 		Storage.set('Wallet.publicKey', Wallet.publicKey);
-
-		Storage.set('Wallet.getSign', Wallet.getSign.bind(Wallet));
-		Storage.set('Wallet.verifySign', Wallet.verifySign.bind(Wallet));
-		Storage.set('Wallet.getAddressFromPublicKey', Wallet.getAddressFromPublicKey.bind(Wallet));
 	});
 };
 module.exports.version = 2;

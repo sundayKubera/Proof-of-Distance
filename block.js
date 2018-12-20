@@ -222,13 +222,15 @@ module.exports = (Storage,Bus) => {
 		Block.block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce,hash,sign".split(",");
 		Block.hash_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce".split(",");
 
-	Bus.on('init', () => {
 		Storage.set('Block',Block);
 		Storage.set('Block.create', (...args) => new Block(...args)+"");
 		Storage.set('Block.encode', Block.encode);
 		Storage.set('Block.decode', Block.decode);
 		Storage.set('Block.isBlockValid', Block.isBlockValid);
 		Storage.set('Block.isBlockHeadValid', Block.isBlockHeadValid);
+		
+	Bus.on('init', () => {
+
 	});
 };
 module.exports.version = 2;
