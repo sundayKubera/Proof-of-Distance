@@ -1,49 +1,47 @@
 const EventEmitter = require('events');
 
 class Bus extends EventEmitter {
-	constructor () {
-		super();
-	}
-
-
 	/**
-	 * emit that needs Response
+	 * emit that needs Return
 	 *
+	 * @param {string|sybole} name
+	 * @param {...anything} args
 	 * @return {object} : promise
 	 */
-	request (name, ...args) {
+	call (name, ...args) {
 		return new Promise((resolve, reject) => {
-			this.emit(name, {resolve, reject}, ...args);
+			this.emit(this.nameSpace+name, {resolve, reject}, ...args);
 		});
 	}
 
 	/**
-	 * on that makes Response
+	 * on that makes Return
 	 *
 	 * @param {string|sybole} name
 	 * @param {function} listener
 	 * @return {object} : self
 	 */
-	onRequest (name, listener) {
-		return this.on(name, listener.listener = (response, ...args) => {
+	onCall (name, listener, once=false) {
+		return this[once ? "once" : "on"](this.nameSpace+name, listener.listener = (response, ...args) => {
 			try {
 				response.resolve(listener(...args));
 			} catch (error) {
-				response.reject(error);
+				console.error(error);
+				response.resolve(false);
+				//response.reject(error);
 			}
 		});
 	}
+	onceCall (name, listener) { return this.onCall(this.nameSpace+name, listener, true); }
 
 	/**
-	 * off that makes Response
+	 * off that makes Return
 	 *
 	 * @param {string|sybole} name
 	 * @param {function} listener
 	 * @return {object} : self
 	 */
-	offRequest (name, listener) {
-		return this.off(name, listener.listener);
-	}
+	offCall (name, listener) { return this.off(this.nameSpace+name, listener.listener); }
 }
 
 module.exports = Bus;

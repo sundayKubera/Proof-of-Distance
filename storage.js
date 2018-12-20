@@ -2,7 +2,7 @@ const STORAGE = {};
 
 class Stroage {
 	constructor (nameSpace="") {
-		this.nameSpace = nameSpace+":";
+		this.nameSpace = nameSpace ? nameSpace+"." : "";
 	}
 
 	/**
@@ -36,14 +36,22 @@ class Stroage {
 	 *
 	 * @return {stirng[]}
 	 */
-	keys () { return Object.keys().filter(key => key.startsWith(this.nameSpace)) }
+	keys () {
+		return Object.keys(STORAGE)
+			.filter(key => key.startsWith(this.nameSpace))
+			.map(key => key.substr(this.nameSpace.length));
+	}
 
 	/**
 	 * create view of nameSpace
 	 *
 	 * @return {object} : instance of Storage;
 	 */
-	getNameSpace (nameSpace="") { return new Stroage(this.nameSpace+":"+nameSpace); }
+	getNameSpace (nameSpace='global') {
+		if (nameSpace == 'global')
+			return new Stroage();
+		return new Stroage(this.nameSpace+"."+nameSpace);
+	}
 };
 
 module.exports = Stroage;
