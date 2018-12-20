@@ -58,7 +58,7 @@ module.exports = (Storage,Bus) => {
 		 * @param {string} transaction
 		 * @return {boolen}
 		 */
-		static async verify (transaction) {
+		static verify (transaction) {
 			let tx = Transaction.decode(transaction);
 
 			if (util.sha256(Transaction.encode(tx, true)) !== tx.hash)							return false;	//it attacked by someone!!!
@@ -70,8 +70,6 @@ module.exports = (Storage,Bus) => {
 	};
 		Transaction.transaction_properties = "hash,sign,address,publicKey,data,timestamp".split(",");
 		Transaction.hash_properties = "address,publicKey,data,timestamp".split(",");
-
-	Storage.set('Transaction', Transaction);
 	
 	class TransactionBuilder {
 		/**
@@ -86,9 +84,9 @@ module.exports = (Storage,Bus) => {
 		 * @return {object} : Transaction Object
 		 */
 		sign (wallet) {
-			let transaction_json = Transaction.encode({
-				address:	wallet.getAddress(),
-				publicKey:	wallet.getPublicKey(),
+			let transaction_json = Storage.call('Transaction.encode',{
+				address:	Storage.get('Wallet.address'),
+				publicKey:	Storage.get('Wallet.publicKey'),
 				data:		JSON.stringify(this.data),
 				timestamp:	Date.now()
 			}, true);
@@ -96,9 +94,8 @@ module.exports = (Storage,Bus) => {
 			let hash = util.sha256(transaction_json);
 			let sign = wallet.getSign(hash);
 
-			return new Transaction(hash, sign, ...JSON.parse(transaction_json));
+			return Storage.call('Transaction.create', hash, sign, ...JSON.parse(transaction_json));
 		}
-
 
 		/**
 		 * verify Transaction( to use in verify accepted transactions )
@@ -107,16 +104,20 @@ module.exports = (Storage,Bus) => {
 		 * @param {object} block : to use in verify
 		 * @return {boolean}
 		 */
-		static async verify (transaction, block) {
-			return await Transaction.verify(transaction);
+		static verify (transaction, block) {
+			return Storage.call('Transaction.verify',transaction);
 		}
 	};
 
-	Storage.set('Transaction.Builder', TransactionBuilder);
-
 	Bus.on('init', () => {
-		Bus.onCall('Transaction.encode', Transaction.encode);
-		Bus.onCall('Transaction.decode', Transaction.decode);
+		Storage.set('Transaction', Transaction);
+		Storage.set('Transaction.create', (...args) => new Transaction(...args));
+		Storage.set('Transaction.verify', Transaction.verify);
+		Storage.set('Transaction.encode', Transaction.encode);
+		Storage.set('Transaction.decode', Transaction.decode);
+
+		Storage.set('Transaction.Builder', TransactionBuilder);
+		Storage.set('Transaction.Builder.verify', TransactionBuilder.verify);
 	});
 };
 module.exports.version = 2;

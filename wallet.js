@@ -88,13 +88,12 @@ module.exports = (Storage,Bus) => {
 	});
 
 	Bus.on('init', () => {
+		Storage.set('Wallet.address', Wallet.address);
+		Storage.set('Wallet.publicKey', Wallet.publicKey);
+
 		Storage.set('Wallet.getSign', Wallet.getSign.bind(Wallet));
 		Storage.set('Wallet.verifySign', Wallet.verifySign.bind(Wallet));
 		Storage.set('Wallet.getAddressFromPublicKey', Wallet.getAddressFromPublicKey.bind(Wallet));
-
-		Bus.onCall('Wallet.getSign', Wallet.getSign.bind(Wallet));
-		Bus.onCall('Wallet.verifySign', Wallet.verifySign.bind(Wallet));
-		Bus.onCall('Wallet.getAddressFromPublicKey', Wallet.getAddressFromPublicKey.bind(Wallet));
 	});
 };
 module.exports.version = 2;
