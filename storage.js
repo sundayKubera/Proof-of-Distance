@@ -43,7 +43,11 @@ class Stroage {
 	 *
 	 * @return {object} : instance of Storage;
 	 */
-	getNameSpace (nameSpace="") { return new Stroage(this.nameSpace+":"+nameSpace); }
+	getNameSpace (nameSpace='global') {
+		if (nameSpace == 'global')
+			return new Stroage();
+		return new Stroage(this.nameSpace+":"+nameSpace);
+	}
 };
 
 module.exports = Stroage;

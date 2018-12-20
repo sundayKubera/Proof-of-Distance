@@ -1,8 +1,9 @@
 const EventEmitter = require('events');
 
 class Bus extends EventEmitter {
-	constructor () {
+	constructor (nameSpace="") {
 		super();
+		this.nameSpace = nameSpace+":"
 	}
 
 
@@ -15,7 +16,7 @@ class Bus extends EventEmitter {
 	 */
 	call (name, ...args) {
 		return new Promise((resolve, reject) => {
-			this.emit(name, {resolve, reject}, ...args);
+			this.emit(this.nameSpace+name, {resolve, reject}, ...args);
 		});
 	}
 
@@ -27,7 +28,7 @@ class Bus extends EventEmitter {
 	 * @return {object} : self
 	 */
 	onCall (name, listener, once=false) {
-		return this[once ? "once" : "on"](name, listener.listener = (response, ...args) => {
+		return this[once ? "once" : "on"](this.nameSpace+name, listener.listener = (response, ...args) => {
 			try {
 				response.resolve(listener(...args));
 			} catch (error) {
@@ -37,7 +38,7 @@ class Bus extends EventEmitter {
 			}
 		});
 	}
-	onceCall (name, listener) { return this.onCall(name, listener, true); }
+	onceCall (name, listener) { return this.onCall(this.nameSpace+name, listener, true); }
 
 	/**
 	 * off that makes Return
@@ -46,7 +47,22 @@ class Bus extends EventEmitter {
 	 * @param {function} listener
 	 * @return {object} : self
 	 */
-	offCall (name, listener) { return this.off(name, listener.listener); }
+	offCall (name, listener) { return this.off(this.nameSpace+name, listener.listener); }
+
+	/**
+	 * create view of nameSpace
+	 *
+	 * @return {object} : instance of Bus
+	 */
+	getNameSpace (nameSpace='global') {
+		let result = Object.create(this);
+		result.nameSpace = this.nameSpace+nameSpace+":";
+
+		if (nameSpace == 'global')
+			result.nameSpace = ":";
+
+		return result;
+	}
 }
 
 module.exports = Bus;
