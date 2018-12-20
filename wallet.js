@@ -23,10 +23,23 @@ module.exports = (Storage,Bus) => {
 			this.address = this.getAddressFromPublicKey(this.publicKey);
 		},
 
+		/**
+		 * Get Address From Public Key
+		 *
+		 * @param {string} publicKey
+		 * @return {string} : Generated Address
+		 */
 		getAddressFromPublicKey (publicKey) {
 			return util.sha256(publicKey+"address");
 		},
 
+		/**
+		 * Convert HEX format Public Key To .Pem format
+		 *  it needs when 'Verifing Transaction'
+		 *
+		 * @param {string} publicKey
+		 * @return {string} : .Pem formated Public Key
+		 */
 		publicKey2Pem (publicKey) {
 			let key = "";
 			while (publicKey.length > 64) {
@@ -38,6 +51,12 @@ module.exports = (Storage,Bus) => {
 			return "-----BEGIN PUBLIC KEY-----\n"+key+"\n-----END PUBLIC KEY-----";
 		},
 
+		/**
+		 * Sign on Data
+		 *
+		 * @param {string} dataString : data to sign on
+		 * @return {string} : sign
+		 */
 		getSign (dataString) {
 			const sign = crypto.createSign('SHA256');
 			sign.write(dataString);
@@ -45,6 +64,14 @@ module.exports = (Storage,Bus) => {
 			return sign.sign( this.privatePem, "hex");
 		},
 
+		/**
+		 * Check for the Sign
+		 *
+		 * @param {string} dataString :  data that Signed on
+		 * @param {string} sign : Sign to Verify
+		 * @param {string} publicKey
+		 * @return {boolen} : valid or not valid
+		 */
 		verifySign (dataString, sign, publicKey) {
 			const verify = crypto.createVerify('SHA256');
 			verify.update(dataString);
