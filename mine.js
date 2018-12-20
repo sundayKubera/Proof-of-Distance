@@ -1,7 +1,14 @@
 module.exports = (Storage,Bus) => {
 	const Mine = {
+		miner:null
 		miningLoop () {
+			if (!this.miner || this.miner.block) return;
 
+			for (let i=0; i<1000; i++) {
+				if (this.miner.block)	break;
+
+				this.miner.mine( Math.floor(Math.random(10000)) );
+			}
 		},
 	};
 
@@ -34,7 +41,7 @@ module.exports = (Storage,Bus) => {
 			this.hash = "";
 			this.sign = "";
 
-			this.block = null;
+			this.block = false;
 		}
 
 		mine (nonce) {
@@ -46,13 +53,10 @@ module.exports = (Storage,Bus) => {
 			try {
 				Storage.call('Block.isPropertiesValid', this, true);
 				if (Storage.call('Block.isBlockValid', this))
-					this.block = Storage.call('Block.decode', Storage.call('Block.encode', this, Block.full_block_properties));
+					this.block = Storage.call('Block.decode', Storage.call('Block.encode', this));
 			} catch (e) {
 				console.error(e);
-				return false;
 			}
-
-			return false;
 		}
 	};
 
