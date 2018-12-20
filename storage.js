@@ -2,7 +2,7 @@ const STORAGE = {};
 
 class Stroage {
 	constructor (nameSpace="") {
-		this.nameSpace = nameSpace+".";
+		this.nameSpace = nameSpace ? nameSpace+"." : "";
 	}
 
 	/**
