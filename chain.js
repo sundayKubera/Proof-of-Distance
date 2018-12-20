@@ -20,7 +20,7 @@ module.exports = (Storage,Bus) => {
 				i++;
 			}
 			return true;	
-		}
+		},
 
 		/**
 		 * Check if new chain is completely same with my chain
@@ -29,9 +29,7 @@ module.exports = (Storage,Bus) => {
 		 * @param {object[]} chain
 		 * @return {boolean}
 		 */
-		isCompleteSameChain (chain) {
-			return chain.map(block => block.hash).join() === this.chain.map(block => block.hash).join();
-		}
+		isCompleteSameChain (chain) { return chain.map(block => block.hash).join() === this.chain.map(block => block.hash).join(); },
 		
 		/**
 		 * fill transaction data to my chain
@@ -51,7 +49,7 @@ module.exports = (Storage,Bus) => {
 			}
 
 			return {addedTransactions, removedTransactions:[]};
-		}
+		},
 		
 		/**
 		 * Check if new chain is not unrelated to my chain
@@ -64,7 +62,7 @@ module.exports = (Storage,Bus) => {
 			if (this.chain.length === 0)	return true;
 			else if (chain[0].index === 0)	return chain[0].hash === this.block(0).hash;
 			else							return chain[0].prev_hash === this.block(chain[0].index-1).hash;
-		}
+		},
 
 		/**
 		 * Check if new chain is longer & closer then my chain
@@ -79,7 +77,9 @@ module.exports = (Storage,Bus) => {
 
 			let newChainLength = Math.max(...chain.map(block => block.index));
 			let currChainLength = Math.max(...this.chain.map(block => block.index));
+
 			let longerLength = Math.max(newChainLength, currChainLength);
+			
 			let newChainScore = this.scoreChain(chain, longerLength, newChainLength);
 			let currChainScore = this.scoreChain(this.chain, longerLength, currChainLength);
 
@@ -87,7 +87,7 @@ module.exports = (Storage,Bus) => {
 			else if (newChainScore == currChainScore && chain.length > this.chain.length)	return true;
 
 			return false;
-		}
+		},
 
 		/**
 		 * Calculate chain's score(lower score wins)
@@ -109,7 +109,7 @@ module.exports = (Storage,Bus) => {
 				resultScore += (resultScore/chain.length) * (longerLength-myLength);
 
 			return resultScore;
-		}
+		},
 		
 		/**
 		 * Replace My chain to New chain
@@ -136,7 +136,7 @@ module.exports = (Storage,Bus) => {
 				removedTransactions:removedTransactions.filter(transaction => addedTransactions.indexOf(transaction) < 0),
 				addedTransactions:addedTransactions.filter(transaction => removedTransactions.indexOf(transaction) < 0)
 			};
-		}
+		},
 		
 		/**
 		 * New chain Recived
@@ -164,7 +164,7 @@ module.exports = (Storage,Bus) => {
 
 			Bus.emit('Chain.onupdate');
 			return this.replaceChain(chain);
-		}
+		},
 	};
 
 		Storage.set('Chain.chain',[]);
