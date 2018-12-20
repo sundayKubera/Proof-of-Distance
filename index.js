@@ -17,7 +17,7 @@ let ip = (() => {
 Storage.set('ENV.SocketServer.host', ip);
 
 if ( process.argv[2] ) {
-	Storage.set('ENV.SocketServer.seedPeers', [`ws://localhost:`+process.argv[2]]);
+	Storage.set('ENV.SocketServer.seedPeers', [`ws://${ip}:${process.argv[2]}`]);
 	Storage.set('ENV.SocketServer.port', 8002+Math.floor(Math.random()*1000));
 	Storage.set('ENV.HttpServer.port', 8002+Math.floor(Math.random()*1000));
 } else {
@@ -31,5 +31,3 @@ for (let script of sctipts)
 	require(script)(Storage,Bus);
 
 Bus.emit("init");
-
-console.log(Storage, Bus);
