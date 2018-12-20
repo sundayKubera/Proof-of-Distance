@@ -41,9 +41,7 @@ class Bus extends EventEmitter {
 	 * @param {function} listener
 	 * @return {object} : self
 	 */
-	offCall (name, listener) {
-		return this.off(name, listener.listener);
-	}
+	offCall (name, listener) { return this.off(name, listener.listener); }
 }
 
 module.exports = Bus;
