@@ -3,7 +3,7 @@ const EventEmitter = require('events');
 class Bus extends EventEmitter {
 	constructor (nameSpace="") {
 		super();
-		this.nameSpace = nameSpace+":"
+		this.nameSpace = nameSpace+"."
 	}
 
 
@@ -56,10 +56,10 @@ class Bus extends EventEmitter {
 	 */
 	getNameSpace (nameSpace='global') {
 		let result = Object.create(this);
-		result.nameSpace = this.nameSpace+nameSpace+":";
+		result.nameSpace = this.nameSpace+nameSpace+".";
 
 		if (nameSpace == 'global')
-			result.nameSpace = ":";
+			result.nameSpace = ".";
 
 		return result;
 	}
