@@ -72,45 +72,48 @@ module.exports = (Storage,Bus) => {
 	 *	});
 	 */
 
-	Protocol.storage.set('Addrs.Request', class AddrsRequest {
-		static async make (...args) { return []; }
-		static handler (addr, msg) { Protocol.messager(addr, 'Addrs.Response'); }
-	});
-	Protocol.storage.set('Addrs.Response', class AddrsResponse {
-		constructor (addrs) { this.addrs = addrs; }
-		static async make () { return [Storage.getNameSpace('SocketServer.peers').keys()];  }
-		static handler (addr, msg) { Bus.emit('SocketServer.newPeers', msg.addrs); }
-	});
+	 //Addrs
+		Protocol.storage.set('Addrs.Request', class AddrsRequest {
+			static async make (...args) { return []; }
+			static handler (addr, msg) { Protocol.messager(addr, 'Addrs.Response'); }
+		});
+		Protocol.storage.set('Addrs.Response', class AddrsResponse {
+			constructor (addrs) { this.addrs = addrs; }
+			static async make () { return [Storage.getNameSpace('SocketServer.peers').keys()];  }
+			static handler (addr, msg) { Bus.emit('SocketServer.newPeers', msg.addrs); }
+		});
 
-	Protocol.storage.set('Chain.Request', class ChainRequest {
-		static async make (...args) { return []; }
-		static handler (addr, msg) { Protocol.messager(addr, 'Chain.Response'); }
-	});
-	Protocol.storage.set('Chain.Response', class ChainResponse {
-		constructor (chain) { this.chain = chain; }
-		static async make () { return [Storage.get('Chain.chain')];  }
-		static handler (addr, msg) { Bus.emit('Chain.newChain', msg.chain); }
-	});
-	Protocol.storage.set('Chain.BroadCast', class ChainBroadCast {
-		constructor (chain) { this.chain = chain; }
-		static async make (transactions) { return [transactions];  }
-		static handler (addr, msg) { Bus.emit('Chain.newChain', msg.transactions); }
-	});
+	//Chain
+		Protocol.storage.set('Chain.Request', class ChainRequest {
+			static async make (...args) { return []; }
+			static handler (addr, msg) { Protocol.messager(addr, 'Chain.Response'); }
+		});
+		Protocol.storage.set('Chain.Response', class ChainResponse {
+			constructor (chain) { this.chain = chain; }
+			static async make () { return [Storage.get('Chain.chain')];  }
+			static handler (addr, msg) { Bus.emit('Chain.newChain', msg.chain); }
+		});
+		Protocol.storage.set('Chain.BroadCast', class ChainBroadCast {
+			constructor (chain) { this.chain = chain; }
+			static async make (transactions) { return [transactions];  }
+			static handler (addr, msg) { Bus.emit('Chain.newChain', msg.transactions); }
+		});
 
-	Protocol.storage.set('Transaction.Request', class TransactionRequest {
-		static async make (...args) { return []; }
-		static handler (addr, msg) { Protocol.messager(addr, 'Transaction.Response'); }
-	});
-	Protocol.storage.set('Transaction.Response', class TransactionResponse {
-		constructor (transactions) { this.transactions = transactions; }
-		static async make () { return [Storage.getNameSpace('TransactionPool.transactions')];  }
-		static handler (addr, msg) { Bus.emit('TransactionPool.addTransactions', msg.transactions); }
-	});
-	Protocol.storage.set('Transaction.BroadCast', class TransactionBroadCast {
-		constructor (transactions) { this.transactions = transactions; }
-		static async make (transactions) { return [transactions];  }
-		static handler (addr, msg) { Bus.emit('TransactionPool.addTransactions', msg.transactions); }
-	});
+	//Transaction
+		Protocol.storage.set('Transaction.Request', class TransactionRequest {
+			static async make (...args) { return []; }
+			static handler (addr, msg) { Protocol.messager(addr, 'Transaction.Response'); }
+		});
+		Protocol.storage.set('Transaction.Response', class TransactionResponse {
+			constructor (transactions) { this.transactions = transactions; }
+			static async make () { return [Storage.getNameSpace('TransactionPool.transactions')];  }
+			static handler (addr, msg) { Bus.emit('TransactionPool.addTransactions', msg.transactions); }
+		});
+		Protocol.storage.set('Transaction.BroadCast', class TransactionBroadCast {
+			constructor (transactions) { this.transactions = transactions; }
+			static async make (transactions) { return [transactions];  }
+			static handler (addr, msg) { Bus.emit('TransactionPool.addTransactions', msg.transactions); }
+		});
 		
 	Bus.once('init',() => {
 		Bus.on('Protocol.send', Protocol.messager.bind(Protocol));
