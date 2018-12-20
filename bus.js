@@ -24,8 +24,8 @@ class Bus extends EventEmitter {
 	 * @param {function} listener
 	 * @return {object} : self
 	 */
-	onCall (name, listener) {
-		return this.on(name, listener.listener = (response, ...args) => {
+	onCall (name, listener, once=false) {
+		return this[once ? "once" : "on"](name, listener.listener = (response, ...args) => {
 			try {
 				response.resolve(listener(...args));
 			} catch (error) {
@@ -33,15 +33,7 @@ class Bus extends EventEmitter {
 			}
 		});
 	}
-	onceCall (name, listener) {
-		return this.once(name, listener.listener = (response, ...args) => {
-			try {
-				response.resolve(listener(...args));
-			} catch (error) {
-				response.reject(error);
-			}
-		});	
-	}
+	onceCall (name, listener) { return this.onCall(name, listener, true); }
 
 	/**
 	 * off that makes Return
