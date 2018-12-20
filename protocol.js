@@ -93,22 +93,6 @@ module.exports = (Storage,Bus) => {
 			static handler (addr, msg) { Bus.emit('Chain.newChain', msg.transactions); }
 		});
 
-	//Transaction
-		Storage.call('Protocol.register','Transaction.Request', class TransactionRequest {
-			static async make (...args) { return []; }
-			static handler (addr, msg) { Bus.emit('Protocol.send', addr, 'Transaction.Response'); }
-		});
-		Storage.call('Protocol.register','Transaction.Response', class TransactionResponse {
-			constructor (transactions) { this.transactions = transactions; }
-			static async make () { return [Storage.getNameSpace('TransactionPool.transactions')];  }
-			static handler (addr, msg) { Bus.emit('TransactionPool.addTransactions', msg.transactions); }
-		});
-		Storage.call('Protocol.register','Transaction.BroadCast', class TransactionBroadCast {
-			constructor (transactions) { this.transactions = transactions; }
-			static async make (transactions) { return [transactions];  }
-			static handler (addr, msg) { Bus.emit('TransactionPool.addTransactions', msg.transactions); }
-		});
-		
 	Bus.once('init',() => {
 		Bus.on('Protocol.send', Protocol.messager.bind(Protocol));
 		Bus.on('Protocol.broadcast', Protocol.broadCaster.bind(Protocol));

@@ -181,8 +181,6 @@ module.exports = (Storage,Bus) => {
 		Storage.call('Transaction.Builder.register', 'Builder', TransactionBuilder);
 		Storage.call('Transaction.Builder.register', 'Transmisson', TransmissionBuilder);
 		Storage.call('Transaction.Builder.register', 'MinerPermission', MinerPermissionBuilder);
-
-		console.log(Storage.keys());
 	});
 };
 module.exports.version = 2;
