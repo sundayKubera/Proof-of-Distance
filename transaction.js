@@ -28,9 +28,7 @@ module.exports = (Storage,Bus) => {
 		 *
 		 * @return {string}
 		 */
-		toString () {
-			return Transaction.encode(this);
-		}
+		toString () { return Transaction.encode(this); }
 
 		/**
 		 * Convert Transaction Object into String
@@ -75,7 +73,7 @@ module.exports = (Storage,Bus) => {
 		/**
 		 * Create Basic Transaction Builder Object
 		 */
-		constructor () { this.data = {}; }
+		constructor () { this.data = {name:this.name}; }
 
 		/**
 		 * Sign on this Transaction
@@ -83,7 +81,7 @@ module.exports = (Storage,Bus) => {
 		 * @param {object} wallet : needs to sign
 		 * @return {object} : Transaction Object
 		 */
-		sign (wallet) {
+		sign () {
 			let transaction_json = Storage.call('Transaction.encode',{
 				address:	Storage.get('Wallet.address'),
 				publicKey:	Storage.get('Wallet.publicKey'),
@@ -94,7 +92,7 @@ module.exports = (Storage,Bus) => {
 			let hash = util.sha256(transaction_json);
 			let sign = wallet.getSign(hash);
 
-			return Storage.call('Transaction.create', hash, sign, ...JSON.parse(transaction_json));
+			return Storage.call('Transaction.create', hash, sign, ...JSON.parse(transaction_json))+"";
 		}
 
 		/**
@@ -104,8 +102,70 @@ module.exports = (Storage,Bus) => {
 		 * @param {object} block : to use in verify
 		 * @return {boolean}
 		 */
+		static verify (transaction, block) { return Storage.call('Transaction.verify',transaction); }
+
+
+		/**
+		 * register TransactionBuilder Class
+		 *
+		 * @param {string} name
+		 * @param {function} CLASS
+		 */
+		static register (name, CLASS) {
+			CLASS.prototype.name = `Transaction.${name}`;
+			Storage.set(`Transaction.${name}`, CLASS);
+			Storage.set(`Transaction.${name}.verify`, CLASS.verify);
+			Storage.set(`Transaction.${name}.create`, (...args) => new CLASS(...args).sign());
+		}
+	};
+
+	class TransmissionBuilder extends TransactionBuilder {
+		/**
+		 * Create Basic TransmissonTransaction Builder Object
+		 *  it needs to sign by sendAddr
+		 *  but it can sign by reciveAddr when sendAddr is "0"*64
+		 *
+		 * @param {string} sendAddr
+		 * @param {string} receiveAddr
+		 * @param {int} amount
+		 */
+		constructor (sendAddr, 	receiveAddr, amount) {
+			super();
+			this.data.receiveAddr = receiveAddr;
+			this.data.sendAddr = sendAddr;
+			this.data.amount = amount;
+		}
+
+		/**
+		 * verify Transaction Data
+		 *
+		 * @param {object} transaction : to verify
+		 * @return {boolean}
+		 */
+		static verify (transaction) {
+			if (transaction.data.sendAddr === util.zeros64) {
+				if (transaction.address !== transaction.data.receiveAddr)	return false;
+			} else if (transaction.address !== transaction.data.sendAddr)	return false;
+			return true;
+		}
+	};
+
+	class MinerPermissionBuilder extends TransactionBuilder {
+		constructor () {
+			super();
+		}
+
+		/**
+		 * verify Transaction
+		 *
+		 * @param {object} transaction : to verify
+		 * @return {boolean}
+		 */
 		static verify (transaction, block) {
-			return Storage.call('Transaction.verify',transaction);
+			let sign = transaction.sign,
+				data = Transaction.encode(transaction,true);
+
+			return Storage.call('Wallet.verifySign', data, sign, block.publicKey);
 		}
 	};
 
@@ -116,8 +176,13 @@ module.exports = (Storage,Bus) => {
 		Storage.set('Transaction.encode', Transaction.encode);
 		Storage.set('Transaction.decode', Transaction.decode);
 
-		Storage.set('Transaction.Builder', TransactionBuilder);
-		Storage.set('Transaction.Builder.verify', TransactionBuilder.verify);
+		Storage.set('Transaction.Builder.register', TransactionBuilder.register);
+
+		Storage.call('Transaction.Builder.register', 'Builder', TransactionBuilder);
+		Storage.call('Transaction.Builder.register', 'Transmisson', TransmissionBuilder);
+		Storage.call('Transaction.Builder.register', 'MinerPermission', MinerPermissionBuilder);
+
+		console.log(Storage.keys());
 	});
 };
 module.exports.version = 2;
