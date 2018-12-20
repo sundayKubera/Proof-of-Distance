@@ -4,7 +4,6 @@ module.exports = (Storage, Bus) => {
 
 	const SocketServer = {
 		storage:Storage.getNameSpace('SocketServer'),
-		bus:Bus.getNameSpace('SocketServer'),
 
 		server:null,
 
@@ -56,19 +55,19 @@ module.exports = (Storage, Bus) => {
 				this.storage.get('peers.'+address).terminate();
 
 			//send & broadCast function
-				let send = msg => socket.send(JSON.stringify(msg));
+				let send = msg => socket.send(msg);
 				let broadcast = (msg,addr=false) => {
 					console.log('broadcast', addr, msg);
 					if (addr !== address)
-						socket.send(JSON.stringify(msg));
+						socket.send(msg);
 				};
 
 			this.storage.set('peers.'+address, socket);
 
 			//bind events
-				this.bus.on('send.'+address, send);
-				this.bus.on('broadcast', broadcast);
-				socket.on('message', msg => this.bus.emit('onrecive', address, JSON.parse(msg)));
+				Bus.on('SocketServer.send.'+address, send);
+				Bus.on('SocketServer.broadcast', broadcast);
+				socket.on('message', msg => Bus.emit('Protocol.handle', address, msg));
 
 			//onclose
 				socket.on('close', () => {
@@ -88,7 +87,7 @@ module.exports = (Storage, Bus) => {
 		},
 	};
 
-	Bus.once('init',() => {// run server
+	Bus.once('init',() => {
 		let host = Storage.get('ENV.SocketServer.host');
 		let port = Storage.get('ENV.SocketServer.port');
 			Storage.set('ENV.SocketServer.address', `ws://${host}:${port}`);
@@ -99,13 +98,9 @@ module.exports = (Storage, Bus) => {
 		for (let peer of seedPeers)
 			SocketServer.connectTo(peer);
 
-		/*SocketServer.bus.on('onrecive', (address,msg) => {
-			console.log('recive from', address, msg);
-		});
-
 		setTimeout(e => {
-			SocketServer.bus.emit('broadcast',{broadcast:Date.now()%10000});
-		},1000);*/
+			Bus.emit('Protocol.broadcast', 'AddrRequest');
+		},1000);
 	});
 };
 module.exports.version = 1;
