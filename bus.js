@@ -1,12 +1,6 @@
 const EventEmitter = require('events');
 
 class Bus extends EventEmitter {
-	constructor (nameSpace="") {
-		super();
-		this.nameSpace = nameSpace+"."
-	}
-
-
 	/**
 	 * emit that needs Return
 	 *
@@ -48,21 +42,6 @@ class Bus extends EventEmitter {
 	 * @return {object} : self
 	 */
 	offCall (name, listener) { return this.off(this.nameSpace+name, listener.listener); }
-
-	/**
-	 * create view of nameSpace
-	 *
-	 * @return {object} : instance of Bus
-	 */
-	getNameSpace (nameSpace='global') {
-		let result = Object.create(this);
-		result.nameSpace = this.nameSpace+nameSpace+".";
-
-		if (nameSpace == 'global')
-			result.nameSpace = ".";
-
-		return result;
-	}
 }
 
 module.exports = Bus;
