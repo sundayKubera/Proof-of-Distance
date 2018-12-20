@@ -61,9 +61,9 @@ module.exports = (Storage,Bus) => {
 		static async verify (transaction) {
 			let tx = Transaction.decode(transaction);
 
-			if (util.sha256(Transaction.encode(tx, true)) !== tx.hash)								return false;	//it attacked by someone!!!
-			if (!(await Bus.call('Wallet.verifySign', tx.hash, tx.sign, tx.publicKey)))				return false;	//it is fake!!!
-			if (tx.address !== (await Bus.call('Wallet.getAddressFromPublicKey', tx.publicKey)))	return false;	//it is fake!!!
+			if (util.sha256(Transaction.encode(tx, true)) !== tx.hash)							return false;	//it attacked by someone!!!
+			if (!Storage.call('Wallet.verifySign', tx.hash, tx.sign, tx.publicKey))				return false;	//it is fake!!!
+			if (tx.address !== Storage.call('Wallet.getAddressFromPublicKey', tx.publicKey))	return false;	//it is fake!!!
 
 			return true;
 		};
@@ -72,6 +72,47 @@ module.exports = (Storage,Bus) => {
 		Transaction.hash_properties = "address,publicKey,data,timestamp".split(",");
 
 	Storage.set('Transaction', Transaction);
+	
+	class TransactionBuilder {
+		/**
+		 * Create Basic Transaction Builder Object
+		 */
+		constructor () { this.data = {}; }
+
+		/**
+		 * Sign on this Transaction
+		 *
+		 * @param {object} wallet : needs to sign
+		 * @return {object} : Transaction Object
+		 */
+		sign (wallet) {
+			let transaction_json = Transaction.encode({
+				address:	wallet.getAddress(),
+				publicKey:	wallet.getPublicKey(),
+				data:		JSON.stringify(this.data),
+				timestamp:	Date.now()
+			}, true);
+			
+			let hash = util.sha256(transaction_json);
+			let sign = wallet.getSign(hash);
+
+			return new Transaction(hash, sign, ...JSON.parse(transaction_json));
+		}
+
+
+		/**
+		 * verify Transaction( to use in verify accepted transactions )
+		 *
+		 * @param {object} transaction : to verify
+		 * @param {object} block : to use in verify
+		 * @return {boolean}
+		 */
+		static async verify (transaction, block) {
+			return await Transaction.verify(transaction);
+		}
+	};
+
+	Storage.set('Transaction.Builder', TransactionBuilder);
 
 	Bus.on('init', () => {
 		Bus.onCall('Transaction.encode', Transaction.encode);
