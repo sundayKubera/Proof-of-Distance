@@ -8,7 +8,7 @@ module.exports = (Storage,Bus) => {
 		publicKey:"",	privateKey:"",
 		address:"",
 
-		init () {
+		init (privateKey=false) {
 			let ECDH = crypto.createECDH('secp521r1');
 
 			if (!privateKey)	ECDH.generateKeys();
