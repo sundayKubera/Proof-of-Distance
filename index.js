@@ -26,7 +26,7 @@ if ( process.argv[2] ) {
 	Storage.set('ENV.HttpServer.port', 8001);
 }
 
-let sctipts = ['./socketServer.js'];
+let sctipts = ['./socketServer.js','./protocol.js'];
 for (let script of sctipts)
 	require(script)(Storage,Bus);
 
