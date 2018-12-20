@@ -60,12 +60,17 @@ module.exports = (Storage,Bus) => {
 				console.error(e);
 			}
 		},
+
+		register (name, CLASS) {
+			Storage.set(`Protocol.${name}`, CLASS);
+		}
 	};
+		Storage.set('Protocol.register', Protocol.register);
 
 	/**
 	 * How to Add Protocol
 	 *
-	 *	Storage.set('Protocol.SampleMessage', class BlaBlaBla {
+	 *	Storage.call('Protocol.register','SampleMessage', class BlaBlaBla {
 	 *		constructor ( arg1 ) { this.arg1 = arg1; }
 	 *		static async make (...args) { return []; }
 	 *		static handler (addr, msg) {}
@@ -73,32 +78,32 @@ module.exports = (Storage,Bus) => {
 	 */
 
 	//Chain
-		Storage.set('Protocol.Chain.Request', class ChainRequest {
+		Storage.call('Protocol.register','Chain.Request', class ChainRequest {
 			static async make (...args) { return []; }
 			static handler (addr, msg) { Bus.emit('Protocol.send', addr, 'Chain.Response'); }
 		});
-		Storage.set('Protocol.Chain.Response', class ChainResponse {
+		Storage.call('Protocol.register','Chain.Response', class ChainResponse {
 			constructor (chain) { this.chain = chain; }
 			static async make () { return [Storage.get('Chain.chain')];  }
 			static handler (addr, msg) { Bus.emit('Chain.newChain', msg.chain); }
 		});
-		Storage.set('Protocol.Chain.BroadCast', class ChainBroadCast {
+		Storage.call('Protocol.register','Chain.BroadCast', class ChainBroadCast {
 			constructor (chain) { this.chain = chain; }
 			static async make (transactions) { return [transactions];  }
 			static handler (addr, msg) { Bus.emit('Chain.newChain', msg.transactions); }
 		});
 
 	//Transaction
-		Storage.set('Protocol.Transaction.Request', class TransactionRequest {
+		Storage.call('Protocol.register','Transaction.Request', class TransactionRequest {
 			static async make (...args) { return []; }
 			static handler (addr, msg) { Bus.emit('Protocol.send', addr, 'Transaction.Response'); }
 		});
-		Storage.set('Protocol.Transaction.Response', class TransactionResponse {
+		Storage.call('Protocol.register','Transaction.Response', class TransactionResponse {
 			constructor (transactions) { this.transactions = transactions; }
 			static async make () { return [Storage.getNameSpace('TransactionPool.transactions')];  }
 			static handler (addr, msg) { Bus.emit('TransactionPool.addTransactions', msg.transactions); }
 		});
-		Storage.set('Protocol.Transaction.BroadCast', class TransactionBroadCast {
+		Storage.call('Protocol.register','Transaction.BroadCast', class TransactionBroadCast {
 			constructor (transactions) { this.transactions = transactions; }
 			static async make (transactions) { return [transactions];  }
 			static handler (addr, msg) { Bus.emit('TransactionPool.addTransactions', msg.transactions); }
