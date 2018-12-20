@@ -33,6 +33,15 @@ class Bus extends EventEmitter {
 			}
 		});
 	}
+	onceCall (name, listener) {
+		return this.once(name, listener.listener = (response, ...args) => {
+			try {
+				response.resolve(listener(...args));
+			} catch (error) {
+				response.reject(error);
+			}
+		});	
+	}
 
 	/**
 	 * off that makes Return
