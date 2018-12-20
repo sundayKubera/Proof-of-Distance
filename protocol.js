@@ -110,4 +110,4 @@ module.exports = (Storage,Bus) => {
 		Bus.on('Protocol.handle', Protocol.handler.bind(Protocol));
 	});
 };
-module.exports.version = 1;
+module.exports.version = 2;
