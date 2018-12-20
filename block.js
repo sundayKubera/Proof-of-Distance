@@ -224,10 +224,16 @@ module.exports = (Storage,Bus) => {
 
 		Storage.set('Block',Block);
 		Storage.set('Block.create', (...args) => new Block(...args)+"");
+		
 		Storage.set('Block.encode', Block.encode);
 		Storage.set('Block.decode', Block.decode);
+
 		Storage.set('Block.isBlockValid', Block.isBlockValid);
 		Storage.set('Block.isBlockHeadValid', Block.isBlockHeadValid);
+		Storage.set('Block.isPropertiesValid', Block.isPropertiesValid);
+
+		Storage.set('Block.calcBlockHash', Block.calcBlockHash);
+		Storage.set('Block.calcMrklHash', Block.calcMrklHash);
 		
 	Bus.on('init', () => {
 

@@ -79,7 +79,7 @@ module.exports = (Storage,Bus) => {
 			let currChainLength = Math.max(...this.chain.map(block => block.index));
 
 			let longerLength = Math.max(newChainLength, currChainLength);
-			
+
 			let newChainScore = this.scoreChain(chain, longerLength, newChainLength);
 			let currChainScore = this.scoreChain(this.chain, longerLength, currChainLength);
 
@@ -187,6 +187,7 @@ module.exports = (Storage,Bus) => {
 
 	Bus.on('init', () => {
 		Bus.on('Chain.onupdate', () => Storage.set('Chain.chain', Chain.chain.map(v => v+"")));
+		Bus.on('Mine.onmine', block => Chain.newChain([block]) );
 
 		//Chain
 			Storage.call('Protocol.register','Chain.Request', ChainRequest);
