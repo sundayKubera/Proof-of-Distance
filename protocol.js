@@ -72,17 +72,6 @@ module.exports = (Storage,Bus) => {
 	 *	});
 	 */
 
-	 //Addrs
-		Protocol.storage.set('Addrs.Request', class AddrsRequest {
-			static async make (...args) { return []; }
-			static handler (addr, msg) { Protocol.messager(addr, 'Addrs.Response'); }
-		});
-		Protocol.storage.set('Addrs.Response', class AddrsResponse {
-			constructor (addrs) { this.addrs = addrs; }
-			static async make () { return [Storage.getNameSpace('SocketServer.peers').keys()];  }
-			static handler (addr, msg) { Bus.emit('SocketServer.newPeers', msg.addrs); }
-		});
-
 	//Chain
 		Protocol.storage.set('Chain.Request', class ChainRequest {
 			static async make (...args) { return []; }
