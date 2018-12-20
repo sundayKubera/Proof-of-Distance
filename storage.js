@@ -52,6 +52,12 @@ class Stroage {
 			return new Stroage();
 		return new Stroage(this.nameSpace+"."+nameSpace);
 	}
+
+	call (name, ...args) {
+		if (this.has(name) && this.get(name) instanceof Function)
+			return this.get(name)(...args);
+		return false;
+	}
 };
 
 module.exports = Stroage;

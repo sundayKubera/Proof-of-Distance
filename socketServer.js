@@ -102,19 +102,21 @@ module.exports = (Storage, Bus) => {
 			Bus.emit('Protocol.broadcast', 'AddrRequest');
 		},1000);
 	});
-
-	 //Addrs
-		Storage.set('Protocol.Addrs.Request', class AddrsRequest {
-			static async make (...args) { return []; }
-			static handler (addr, msg) { Bus.emit('Protocol.send', addr, 'Addrs.Response'); }
-		});
-		Storage.set('Protocol.Addrs.Response', class AddrsResponse {
-			constructor (addrs) { this.addrs = addrs; }
-			static async make () { return [Storage.getNameSpace('SocketServer.peers').keys()];  }
-			static handler (addr, msg) { Bus.emit('SocketServer.newPeers', msg.addrs); }
-		});
+	
+	class AddrsRequest {
+		static async make (...args) { return []; }
+		static handler (addr, msg) { Bus.emit('Protocol.send', addr, 'Addrs.Response'); }
+	};
+	class AddrsResponse {
+		constructor (addrs) { this.addrs = addrs; }
+		static async make () { return [Storage.getNameSpace('SocketServer.peers').keys()];  }
+		static handler (addr, msg) { Bus.emit('SocketServer.newPeers', msg.addrs); }
+	};
 
 	Bus.once('init', () => {
+		 //Addrs
+			Storage.call('Protocol.register','Addrs.Request', AddrsRequest);
+			Storage.call('Protocol.register','Addrs.Response', AddrsResponse);
 
 		Bus.on('SocketServer.newPeers', peers => 
 			peers.map(peer => SocketServer.connectTo(peer))
@@ -122,4 +124,4 @@ module.exports = (Storage, Bus) => {
 
 	});
 };
-module.exports.version = 1;
+module.exports.version = 2;
