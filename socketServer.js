@@ -19,6 +19,9 @@ module.exports = (Storage, Bus) => {
 
 			this.server.on('connection', socket => {
 				socket.once('message', address => {
+					console.log('connect from ', address);
+
+					Storage.call('PeerPool.addPeer', address, false);
 					this.initSocket(address, socket);
 				});
 			});
@@ -32,9 +35,9 @@ module.exports = (Storage, Bus) => {
 		 * @param {string} address : socket server address
 		 */
 		connectTo (address) {
-			if (this.hasConnectionTo(address))	return false;
-
 			const client = new WS(address);
+			console.log('connect to ', address);
+
 
 			client.on('open', e => {
 				client.send(this.address);
@@ -51,18 +54,15 @@ module.exports = (Storage, Bus) => {
 		 * @param {object} socket
 		 */
 		initSocket (address, socket) {
-			if (this.hasConnectionTo(address))
-				this.storage.get('peers.'+address).terminate();
-
 			//send & broadCast function
-				let send = msg => socket.send(msg);
-				let broadcast = (msg,addr=false) => {
-					console.log('broadcast', addr, msg);
-					if (addr !== address)
+				let send = msg => {
+					if (socket.readyState === WS.OPEN)
 						socket.send(msg);
 				};
-
-			this.storage.set('peers.'+address, socket);
+				let broadcast = (msg,addr=false) => {
+					if (socket.readyState === WS.OPEN)
+						socket.send(msg);
+				};
 
 			//bind events
 				Bus.on('SocketServer.send.'+address, send);
@@ -71,19 +71,12 @@ module.exports = (Storage, Bus) => {
 
 			//onclose
 				socket.on('close', () => {
-					this.storage.remove('peers.'+address);
+					Storage.call('PeerPool.removePeer', address);
 					this.bus.off('send.'+address, send);
 					this.bus.off('broadcast', broadcast);
 				});
-		},
 
-		/**
-		 * has connection to address
-		 *
-		 * @return {boolean}
-		 */
-		hasConnectionTo (addr) {
-			return this.storage.getNameSpace('peers').keys().indexOf(addr) >= 0;
+			Bus.emit('connected', address);
 		},
 	};
 
@@ -92,36 +85,9 @@ module.exports = (Storage, Bus) => {
 		let port = Storage.get('ENV.SocketServer.port');
 			Storage.set('ENV.SocketServer.address', `ws://${host}:${port}`);
 
-		let seedPeers = Storage.get('ENV.SocketServer.seedPeers');
-
 		SocketServer.listen();
-		for (let peer of seedPeers)
-			SocketServer.connectTo(peer);
 
-		setTimeout(e => {
-			Bus.emit('Protocol.broadcast', 'AddrRequest');
-		},1000);
-	});
-	
-	class AddrsRequest {
-		static async make (...args) { return []; }
-		static handler (addr, msg) { Bus.emit('Protocol.send', addr, 'Addrs.Response'); }
-	};
-	class AddrsResponse {
-		constructor (addrs) { this.addrs = addrs; }
-		static async make () { return [Storage.getNameSpace('SocketServer.peers').keys()];  }
-		static handler (addr, msg) { Bus.emit('SocketServer.newPeers', msg.addrs); }
-	};
-
-	Bus.once('init', () => {
-		 //Addrs
-			Storage.call('Protocol.register','Addrs.Request', AddrsRequest);
-			Storage.call('Protocol.register','Addrs.Response', AddrsResponse);
-
-		Bus.on('SocketServer.newPeers', peers => 
-			peers.map(peer => SocketServer.connectTo(peer))
-		);
-
+		Bus.on('PeerPool.add', (peer) => SocketServer.connectTo(peer));
 	});
 };
 module.exports.version = 2;

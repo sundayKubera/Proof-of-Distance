@@ -3,10 +3,21 @@ const { spawn } = require('child_process');
 function spawnIndex (i) {
 	const child = spawn('node', i==0 ? ['index.js'] : ['index.js',8000]);	
 
-	child.stdout.on('data', (data) => console.log(`${i}: ${(data+"").substr(0, data.length-1)}`));
-	child.stderr.on('data', (data) => console.error(`${i}: ${(data+"").substr(0, data.length-1)}`));
-	child.on('close', (code) => console.log(`${i} exited with code ${code}`));
-}
+	const tabs = new Array(i).fill('\t\t\t\t').join('');
 
-for (let i=0; i<2; i++)
-	spawnIndex(i);
+	child.stdout.on('data', (data) =>{
+		data = (data+"").substr(0,data.length-1).replace(/\n/gi,`\n${i}${tabs}`);
+		console.log(`${i}:${tabs}${data}`)
+	});
+	child.stderr.on('data', (data) => {
+		console.error(`${i}:\t${(data+"").substr(0,data.length-1).replace(/\n/gi,`\n${i}\t`)}`)
+	});
+	child.on('close', (code) => console.log(`${i} exited with code ${code}`));
+};
+
+spawnIndex(0);
+
+setTimeout(e => {
+	for (let i=1; i<3; i++)
+		spawnIndex(i);
+},1000);

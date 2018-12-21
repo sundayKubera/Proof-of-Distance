@@ -1,7 +1,5 @@
 module.exports = (Storage,Bus) => {
 	const Protocol = {
-		storage:Storage.getNameSpace('Protocol'),
-
 		/**
 		 * make message object
 		 *
@@ -9,11 +7,12 @@ module.exports = (Storage,Bus) => {
 		 * @param {...} args : arguments
 		 */
 		async makeMessage (type, ...args) {
-			let CLASS = this.storage.get(type);
+			let CLASS = Storage.get('Protocol.'+type);
 			if (CLASS) {
 				let msg = new CLASS( ...(await CLASS.make(...args)) );
 				msg.timestamp = Date.now();
 				msg.type = type;
+
 				return msg;
 			}
 			return false;
@@ -27,7 +26,7 @@ module.exports = (Storage,Bus) => {
 		 * @param {...} args : arguments
 		 */
 		async messager (address, type, ...args) {
-			let msg = this.makeMessage(type, ...args);
+			let msg = await this.makeMessage(type, ...args);
 			if (msg)
 				Bus.emit('SocketServer.send.'+address, JSON.stringify(msg));
 		},
@@ -39,9 +38,11 @@ module.exports = (Storage,Bus) => {
 		 * @param {...} args : arguments
 		 */
 		async broadCaster (type, ...args) {
-			let msg = this.makeMessage(type, ...args);
-			if (msg)
+			let msg = await this.makeMessage(type, ...args);
+			if (msg) {
+				console.log('broadcast', msg.type);
 				Bus.emit('SocketServer.broadcast', JSON.stringify(msg));
+			}
 		},
 
 		/**
@@ -53,7 +54,7 @@ module.exports = (Storage,Bus) => {
 		async handler (address, msg_string) {
 			try {
 				let msg = JSON.parse(msg_string),
-					CLASS = this.storage.get(msg.type);
+					CLASS = Storage.get('Protocol.'+msg.type);
 				if (CLASS)
 					await CLASS.handler(address, msg);
 			} catch (e) {

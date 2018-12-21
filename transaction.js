@@ -90,7 +90,7 @@ module.exports = (Storage,Bus) => {
 			}, true);
 			
 			let hash = util.sha256(transaction_json);
-			let sign = wallet.getSign(hash);
+			let sign = Storage.call('wallet.getSign', hash);
 
 			return Storage.call('Transaction.create', hash, sign, ...JSON.parse(transaction_json))+"";
 		}

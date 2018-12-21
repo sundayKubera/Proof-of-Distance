@@ -26,14 +26,36 @@ if ( process.argv[2] ) {
 	Storage.set('ENV.HttpServer.port', 8001);
 }
 
-let sctipts = ['./socketServer.js','./protocol.js','./wallet.js','./transaction.js','./transactionPool.js','./block.js','./chain.js','./mine.js'];
+let sctipts = ['./socketServer.js','./peerPool.js','./protocol.js','./wallet.js','./transaction.js','./transactionPool.js','./block.js','./chain.js','./mine.js'];
 for (let script of sctipts)
 	require(script)(Storage,Bus);
 
-
 Bus.once('init', () => Bus.emit('init-end'));
 Bus.once('init-end', () => {
-	console.log(Storage.keys());
+
+	Bus.on('Mine.onmine', block => {
+		Storage.call('Chain.newChain', [block]);
+		
+		console.log('Mine.onmine', block.index, block.hash.substr(0,8));
+	});
+
+	Bus.on('Chain.onupdate', () => {
+		let block = Storage.call('Chain.topBlock');
+		Bus.emit('Protocol.broadcast', 'Chain.BroadCast');
+
+		console.log('Chain.onupdate', block.index, block.hash.substr(0,8));
+	});
+
+
+	Bus.on('connected', addr => {
+		Bus.emit('Protocol.send', addr, 'Peers.Request');
+		Bus.emit('Protocol.send', addr, 'Chain.Request');
+
+		if (Storage.call('Chain.chain').length)
+			Bus.emit('Protocol.Chain.BroadCast');
+	});
+
+	Bus.once('connected', e => Bus.emit('Mine.start'));
 });
 
 Bus.emit("init");

@@ -1,5 +1,7 @@
 const crypto = require('crypto');
 
+module.exports.zeros64 = new Array(64).fill(0).join("");
+
 /**
  * Hash a String
  *
