@@ -188,7 +188,6 @@ module.exports = (Storage,Bus) => {
 			setTimeout(() => {
 				if (result)
 					Bus.emit('Chain.onupdate');
-				console.log('new Chain', !!result);
 			},100);
 
 			return result;

@@ -3,7 +3,7 @@ const { spawn } = require('child_process');
 function spawnIndex (i) {
 	const child = spawn('node', i==0 ? ['index.js'] : ['index.js',8000]);	
 
-	const tabs = new Array(i).fill('\t\t\t\t').join('');
+	const tabs = new Array(i).fill('\t\t    ').join('');
 
 	child.stdout.on('data', (data) =>{
 		data = (data+"").substr(0,data.length-1).replace(/\n/gi,`\n${i}${tabs}`);
@@ -18,6 +18,6 @@ function spawnIndex (i) {
 spawnIndex(0);
 
 setTimeout(e => {
-	for (let i=1; i<3; i++)
+	for (let i=1; i<9; i++)
 		spawnIndex(i);
 },1000);

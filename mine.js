@@ -12,7 +12,7 @@ module.exports = (Storage,Bus) => {
 						break;
 					}
 				}
-				if (Math.random() > .6)
+				if (Math.random() > .88)
 					console.log('mining', this.miner.index, this.miner.prev_hash.substr(0,8));
 			}
 			setTimeout(this.miningLoop.bind(this));

@@ -123,13 +123,13 @@ module.exports = (Storage,Bus) => {
 			 * @return {string} : hash
 			 */
 			static calcDifficulty (prev_hash, walletAddress) {
-				if (prev_hash.replace(/0/gi,"").length == 0)	return 3;
+				if (prev_hash.replace(/0/gi,"").length == 0)	return 4;
 				
 				let difficulty = util.Coord.distance(util.Coord(prev_hash), util.Coord(walletAddress));
 				//return Math.sqrt(difficulty)/33333 /199 /40 /28;
 
 				for (let i=0; i<5; i++)	difficulty = Math.sqrt(difficulty);
-				return difficulty - 2;
+				return difficulty - 1;
 			}
 
 		/* check functions */

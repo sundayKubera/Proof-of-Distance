@@ -60,7 +60,7 @@ module.exports = (Storage, Bus) => {
 						socket.send(msg);
 				};
 				let broadcast = (msg,addr=false) => {
-					if (socket.readyState === WS.OPEN)
+					if (addr != address && socket.readyState === WS.OPEN)
 						socket.send(msg);
 				};
 
