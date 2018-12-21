@@ -4,6 +4,23 @@ module.exports = (Storage,Bus) => {
 		chain:[],
 
 		/**
+		 * Get Block[i]
+		 * 
+		 * @param {int} i : index
+		 * @return {object} : block
+		 */
+		block (i) { return this.chain[i]; },
+		blocks () { return [...this.chain]; },
+		size () { return this.chain.length ? this.topBlock.index : 0; },
+
+		/**
+		 * Get Top Block
+		 * 
+		 * @return {object} : block
+		 */
+		get topBlock () { return this.chain[this.chain.length-1]; },
+
+		/**
 		 * Check if chain Valid
 		 * 
 		 * @param {object[]} chain
@@ -19,7 +36,7 @@ module.exports = (Storage,Bus) => {
 				prev_hash = block.hash;
 				i++;
 			}
-			return true;	
+			return true;
 		},
 
 		/**
@@ -149,26 +166,34 @@ module.exports = (Storage,Bus) => {
 			if (typeof chain === "string")		chain = JSON.parse(chain);
 			if (chain.length === 0)				return false;
 
-			if (!(chain[0] instanceof Block))	chain = chain.map(block => Storage.call('Block.decode', block));
+			if (!chain[0].hash)					chain = chain.map(block => Storage.call('Block.decode', block));
 			if (!this.isChainValid(chain))		return false;
 
-			if (this.isCompleteSameChain(chain)) {
-				Bus.emit('Chain.onupdate');
-				return this.fillTransactionData(chain);
-			}
 
 			if (this.chain.length) {
-				if (!this.isSameOriginChain(chain))	return false;
+				if (this.isCompleteSameChain(chain))
+					return this.onupdate(this.fillTransactionData(chain));
+
+				//if (!this.isSameOriginChain(chain))	return false;
 				if (!this.isBetterChain(chain))		return false;
 			}
 
-			Bus.emit('Chain.onupdate');
-			return this.replaceChain(chain);
+			return this.onupdate(this.replaceChain(chain));
 		},
-	};
 
-		Storage.set('Chain.chain',[]);
-		Storage.set('Chain.newChain', Chain.newChain.bind(Chain));
+		onupdate (result) {
+			if (result && result.addedTransactions.length == 0 && result.removedTransactions.length == 0)
+				result = false;
+
+			setTimeout(() => {
+				if (result)
+					Bus.emit('Chain.onupdate');
+				console.log('new Chain', !!result);
+			},100);
+
+			return result;
+		}
+	};
 
 	 	class ChainRequest {
 			static async make (...args) { return []; }
@@ -176,18 +201,19 @@ module.exports = (Storage,Bus) => {
 		};
 		class ChainResponse {
 			constructor (chain) { this.chain = chain; }
-			static async make () { return [Storage.get('Chain.chain')];  }
+			static async make () { return [Storage.call('Chain.chain').map(v => v+"")];  }
 			static handler (addr, msg) { Storage.call('Chain.newChain', msg.chain); }
 		};
 		class ChainBroadCast {
 			constructor (chain) { this.chain = chain; }
-			static async make (transactions) { return [transactions];  }
-			static handler (addr, msg) { Storage.call('Chain.newChain', msg.transactions); }
+			static async make () { return [Storage.call('Chain.chain').map(v => v+"")];  }
+			static handler (addr, msg) { Storage.call('Chain.newChain', msg.chain); }
 		};
 
 	Bus.on('init', () => {
-		Bus.on('Chain.onupdate', () => Storage.set('Chain.chain', Chain.chain.map(v => v+"")));
-		Bus.on('Mine.onmine', block => Chain.newChain([block]) );
+		Storage.set('Chain.chain', () => [...Chain.chain]);
+		Storage.set('Chain.topBlock', () => Chain.chain[Chain.chain.length-1]);
+		Storage.set('Chain.newChain', Chain.newChain.bind(Chain));
 
 		//Chain
 			Storage.call('Protocol.register','Chain.Request', ChainRequest);

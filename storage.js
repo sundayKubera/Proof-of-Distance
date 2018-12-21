@@ -54,8 +54,9 @@ class Stroage {
 	}
 
 	call (name, ...args) {
-		if (this.has(name) && this.get(name) instanceof Function)
+		if (this.has(name) && this.get(name) instanceof Function) {
 			return this.get(name)(...args);
+		}
 		return false;
 	}
 };

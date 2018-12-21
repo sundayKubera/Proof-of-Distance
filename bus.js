@@ -26,7 +26,6 @@ class Bus extends EventEmitter {
 			try {
 				response.resolve(listener(...args));
 			} catch (error) {
-				console.error(error);
 				response.resolve(false);
 				//response.reject(error);
 			}

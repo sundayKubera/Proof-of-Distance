@@ -67,7 +67,7 @@ module.exports = (Storage,Bus) => {
 		 * @param {boolean} include_txs : false => just header
 		 * @return {string}
 		 */
-		toString (include_txs=true) { return Block.encode(this, include_txs ? Block.full_block_properties : false); }
+		toString (include_txs=true) { return Block.encode(this, include_txs ? Block.full_block_properties : Block.block_properties); }
 
 		/* encode & decode */
 			/**
@@ -77,7 +77,7 @@ module.exports = (Storage,Bus) => {
 			 * @param {string[]} properties : sequence of properties
 			 * @return {string}
 			 */
-			static encode (block, properties=false) { return util.encode(block, properties || Block.block_properties); }
+			static encode (block, properties=false) { return util.encode(block, properties || Block.full_block_properties); }
 
 			/**
 			 * Convert String into Block Object
