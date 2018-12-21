@@ -40,7 +40,6 @@ module.exports = (Storage,Bus) => {
 		async broadCaster (type, ...args) {
 			let msg = await this.makeMessage(type, ...args);
 			if (msg) {
-				console.log('broadcast', msg.type);
 				Bus.emit('SocketServer.broadcast', JSON.stringify(msg));
 			}
 		},
