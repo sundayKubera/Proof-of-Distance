@@ -13,9 +13,10 @@ module.exports = (Storage,Bus) => {
 		 * @param {any} data : some data
 		 * @param {int} timestamp : Generated time
 		 */
-		constructor (hash, sign, address, publicKey, data, timestamp) {
+		constructor (hash, sign, name, address, publicKey, data, timestamp) {
 			this.hash = hash;
 			this.sign = sign;
+			this.name = name;
 			this.address = address;
 			this.publicKey = publicKey;
 			this.data = data;
@@ -66,14 +67,14 @@ module.exports = (Storage,Bus) => {
 			return true;
 		};
 	};
-		Transaction.transaction_properties = "hash,sign,address,publicKey,data,timestamp".split(",");
-		Transaction.hash_properties = "address,publicKey,data,timestamp".split(",");
+		Transaction.transaction_properties = "hash,sign,name,address,publicKey,data,timestamp".split(",");
+		Transaction.hash_properties = "name,address,publicKey,data,timestamp".split(",");
 	
 	class TransactionBuilder {
 		/**
 		 * Create Basic Transaction Builder Object
 		 */
-		constructor () { this.data = {name:this.name}; }
+		constructor () { this.data = {}; this.name = this.name; }
 
 		/**
 		 * Sign on this Transaction
@@ -83,6 +84,7 @@ module.exports = (Storage,Bus) => {
 		 */
 		sign () {
 			let transaction_json = Storage.call('Transaction.encode',{
+				name:		this.name,
 				address:	Storage.get('Wallet.address'),
 				publicKey:	Storage.get('Wallet.publicKey'),
 				data:		JSON.stringify(this.data),
@@ -90,7 +92,7 @@ module.exports = (Storage,Bus) => {
 			}, true);
 			
 			let hash = util.sha256(transaction_json);
-			let sign = Storage.call('wallet.getSign', hash);
+			let sign = Storage.call('Wallet.getSign', hash);
 
 			return Storage.call('Transaction.create', hash, sign, ...JSON.parse(transaction_json))+"";
 		}
@@ -104,6 +106,14 @@ module.exports = (Storage,Bus) => {
 		 */
 		static verify (transaction, block) { return Storage.call('Transaction.verify',transaction); }
 
+		/**
+		 * verify Transaction( to use in verify accepted transactions )
+		 *
+		 * @param {object} state : to update
+		 * @param {object} data : transaction data
+		 * @param {object} transaction
+		 */
+		static stateUpdate (state, data, transaction) {}
 
 		/**
 		 * register TransactionBuilder Class
@@ -115,6 +125,7 @@ module.exports = (Storage,Bus) => {
 			CLASS.prototype.name = `Transaction.${name}`;
 			Storage.set(`Transaction.${name}`, CLASS);
 			Storage.set(`Transaction.${name}.verify`, CLASS.verify);
+			Storage.set(`Transaction.${name}.stateUpdate`, CLASS.stateUpdate);
 			Storage.set(`Transaction.${name}.create`, (...args) => new CLASS(...args).sign());
 		}
 	};
@@ -143,10 +154,22 @@ module.exports = (Storage,Bus) => {
 		 * @return {boolean}
 		 */
 		static verify (transaction) {
-			if (transaction.data.sendAddr === util.zeros64) {
-				if (transaction.address !== transaction.data.receiveAddr)	return false;
-			} else if (transaction.address !== transaction.data.sendAddr)	return false;
+			let data = JSON.parse(transaction.data);
+
+			if (data.sendAddr === util.zeros64) {
+				if (transaction.address !== data.receiveAddr)	return false;
+			} else if (transaction.address !== data.sendAddr)	return false;
 			return true;
+		}
+
+		static stateUpdate (state, data, transaction) {
+			Storage.set(`ChainState.${data.sendAddr}.amount`, (Storage.get(`ChainState.${data.sendAddr}.amount`) || 0)-data.amount);
+			Storage.set(`ChainState.${data.receiveAddr}.amount`, (Storage.get(`ChainState.${data.receiveAddr}.amount`) || 0)+data.amount);
+		}
+
+		static isPublishTransaction (transaction) {
+			transaction = Storage.call('Transaction.decode', transaction);
+			return transaction.name === TransmissionBuilder.prototype.name && JSON.parse(transaction.data).sendAddr === util.zeros64;
 		}
 	};
 
@@ -161,11 +184,13 @@ module.exports = (Storage,Bus) => {
 		 * @param {object} transaction : to verify
 		 * @return {boolean}
 		 */
-		static verify (transaction, block) {
-			let sign = transaction.sign,
-				data = Transaction.encode(transaction,true);
+		static verify (transaction, block) { return Storage.call('Transaction.verify',transaction); }
 
-			return Storage.call('Wallet.verifySign', data, sign, block.publicKey);
+		static stateUpdate (state, data, transaction) {
+			Storage.set(`ChainState.${transaction.address}.miner`, true);
+			Storage.set(`ChainState.${transaction.address}.miner.hash`, transaction.hash);
+			Storage.set(`ChainState.${transaction.address}.miner.birthHash`, Storage.get('ChainState.block').hash);
+			Storage.set(`ChainState.${transaction.address}.miner.birthIndex`, Storage.get('ChainState.block').index);
 		}
 	};
 
@@ -178,9 +203,11 @@ module.exports = (Storage,Bus) => {
 	Storage.set('Transaction.Builder.register', TransactionBuilder.register);
 
 	Bus.on('init', () => {
+		Storage.set('Transaction.Transmisson.isPublishTransaction', TransmissionBuilder.isPublishTransaction.bind(TransmissionBuilder));
 		Storage.call('Transaction.Builder.register', 'Builder', TransactionBuilder);
 		Storage.call('Transaction.Builder.register', 'Transmisson', TransmissionBuilder);
 		Storage.call('Transaction.Builder.register', 'MinerPermission', MinerPermissionBuilder);
 	});
+
 };
 module.exports.version = 2;

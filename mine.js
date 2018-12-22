@@ -4,7 +4,7 @@ module.exports = (Storage,Bus) => {
 	const Mine = {
 		miner:null,
 		miningLoop () {
-			if (this.miner && !this.miner.block) {
+			if (this.miner && !this.miner.block && this.miner.birthIndex >= 0) {
 				for (let i=0; i<100; i++) {
 					this.miner.mine( Math.floor(Math.random()*1000000000000000000) );
 					if (this.miner.block) {
@@ -12,8 +12,9 @@ module.exports = (Storage,Bus) => {
 						break;
 					}
 				}
-				if (Math.random() > .88)
+				if (Math.random() > .8) {
 					console.log('mining', this.miner.index, this.miner.prev_hash.substr(0,8));
+				}
 			}
 			setTimeout(this.miningLoop.bind(this));
 		},
@@ -26,7 +27,10 @@ module.exports = (Storage,Bus) => {
 		 * @param {string} prev_hash
 		 * @param {object[]|string[]} txs
 		 */
-		mine (index, version, prev_hash, txs=[]) { this.miner = new Miner(index, version, prev_hash, txs); },
+		mine (index, version, prev_hash, txs=[]) {
+			this.miner = new Miner(index, version, prev_hash, txs);
+			console.log('miner update', index, prev_hash.substr(0,8), txs.length);
+		},
 
 		/**
 		 * Mine Genesis Block
@@ -66,6 +70,7 @@ module.exports = (Storage,Bus) => {
 				this.timestamp = Date.now();
 				this.txs = txs;
 
+				this.birthIndex = -1;
 				this.publicKey = Storage.get('Wallet.publicKey');
 				this.nonce = 0;
 
@@ -73,6 +78,15 @@ module.exports = (Storage,Bus) => {
 				this.sign = "";
 
 				this.block = false;
+
+				if (index > 0) {
+					this.birthIndex = Storage.get(`ChainState.${Storage.get('Wallet.address')}.miner.birthIndex`);
+					if (!Number.isInteger(this.birthIndex))
+						this.birthIndex = -1;
+				} else {
+					this.birthIndex = 0;
+				}
+				//console.log('miner update : birthIndex', this.birthIndex);
 			}
 
 			mine (nonce) {
@@ -82,22 +96,33 @@ module.exports = (Storage,Bus) => {
 
 				try {
 					this.block = Storage.call('Block.decode', Storage.call('Block.encode', this));
-				} catch (e) {}
+				} catch (e) {
+					//console.log(e);
+				}
 			}
 		};
 
 	Bus.on('init-end', () => {
 		let transaction = Storage.call('Transaction.Transmisson.create', util.zeros64, Storage.get('Wallet.address'), 100);
-		Mine.mineGenesis([transaction]);
+		Mine.mineGenesis([transaction,...Storage.call('TransactionPool.transactions')]);
 
 		Bus.on('Chain.onupdate',() => {
 			let transaction = Storage.call('Transaction.Transmisson.create', util.zeros64, Storage.get('Wallet.address'), 100);
-			Mine.mineNextBlock( Storage.call('Chain.topBlock'), [transaction, ...Storage.call('TransactionPool.transactions')] );
+			let transactions = [transaction, ...Storage.call('TransactionPool.transactions')]
+
+			if (Storage.call('Chain.topBlock'))	Mine.mineNextBlock( Storage.call('Chain.topBlock'), transactions );
+			else								Mine.mineGenesis(transactions);
 		});
 
-		Bus.once('Mine.start', () => {
-			Mine.miningLoop();
+		Bus.on('TransactionPool.onupdate', () => {
+			let transaction = Storage.call('Transaction.Transmisson.create', util.zeros64, Storage.get('Wallet.address'), 100);
+			let transactions = [transaction, ...Storage.call('TransactionPool.transactions')]
+
+			if (Storage.call('Chain.topBlock'))	Mine.mineNextBlock( Storage.call('Chain.topBlock'), transactions );
+			else								Mine.mineGenesis(transactions);
 		});
+
+		Bus.once('Mine.start', () => Mine.miningLoop());
 	});
 };
 module.exports.version = 2;

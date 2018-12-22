@@ -72,8 +72,8 @@ module.exports = (Storage, Bus) => {
 			//onclose
 				socket.on('close', () => {
 					Storage.call('PeerPool.removePeer', address);
-					this.bus.off('send.'+address, send);
-					this.bus.off('broadcast', broadcast);
+					Bus.off('SocketServer.send.'+address, send);
+					Bus.off('SocketServer.broadcast', broadcast);
 				});
 
 			Bus.emit('connected', address);

@@ -13,13 +13,14 @@ module.exports = (Storage,Bus) => {
 		 * @param {string} mrkl_hash : hash of transactions(top of mrkl tree)
 		 * @param {int} txsCount : count of transactions(transactions.length)
 		 * @param {int} txsSize : length of JSON.stringify(transactions)
+		 * @param {int} birthIndex : miner's birthIndex(to verify Transaction)
 		 * @param {string} publicKey : miner's publicKey(to verify sign & get address)
 		 * @param {int} nonce : random int
 		 * @param {string} hash : hash of upper params
 		 * @param {string} sign : sign on hash
 		 * @param {string[]|object[]} txs : default it is empty
 		 */
-		constructor (index, version, prev_hash, mrkl_hash, txsCount, txsSize, timestamp, publicKey, nonce, hash, sign, txs=false) {
+		constructor (index, version, prev_hash, mrkl_hash, txsCount, txsSize, timestamp, birthIndex, publicKey, nonce, hash, sign, txs=false) {
 			this.index = index;
 			this.version = version;
 			this.prev_hash = prev_hash;
@@ -27,6 +28,7 @@ module.exports = (Storage,Bus) => {
 			this.txsCount = txsCount;
 			this.txsSize = txsSize;
 			this.timestamp = timestamp;
+			this.birthIndex = birthIndex;
 			this.publicKey = publicKey;
 			this.nonce = nonce;
 
@@ -43,6 +45,7 @@ module.exports = (Storage,Bus) => {
 
 			if (!Block.isBlockHeadValid(this)) {
 				throw new Error(`Block : unValidBlock : 'block head' is not valid`);
+				console.log('Miner Valid',Block.isMinerValid(block));
 			}
 		}
 
@@ -129,7 +132,7 @@ module.exports = (Storage,Bus) => {
 				//return Math.sqrt(difficulty)/33333 /199 /40 /28;
 
 				for (let i=0; i<5; i++)	difficulty = Math.sqrt(difficulty);
-				return difficulty - 1;
+				return difficulty - 2;
 			}
 
 		/* check functions */
@@ -154,14 +157,14 @@ module.exports = (Storage,Bus) => {
 
 				if (!Number.isInteger(block.txsCount))		throw new Error(`Block : isPropertiesValid : txsCount must be a int`);
 				if (!Number.isInteger(block.txsSize))		throw new Error(`Block : isPropertiesValid : txsSize must be a int`);
-				if (block.txsCount > block.txsSize)		throw new Error(`Block : isPropertiesValid : '[].length' can't bigger then 'JSON.stringify([]).length'`);
+				if (block.txsCount > block.txsSize)			throw new Error(`Block : isPropertiesValid : '[].length' can't bigger then 'JSON.stringify([]).length'`);
 
 				if (!Number.isInteger(block.nonce))			throw new Error(`Block : isPropertiesValid : nonce must be a int`);
+				if (!Number.isInteger(block.birthIndex))	throw new Error(`Block : isPropertiesValid : birthIndex must be a int`);
 
 				if (!isMiner) {
 					if (typeof block.hash !== "string")			throw new Error(`Block : isPropertiesValid : hash must be a string`);
-					else if (block.hash.length !== 64)			throw new Error(`Block : isPropertiesValid : hash.length must be 64`);	
-
+					else if (block.hash.length !== 64)			throw new Error(`Block : isPropertiesValid : hash.length must be 64`);
 					//sign, publicKey
 				}
 			}
@@ -180,7 +183,7 @@ module.exports = (Storage,Bus) => {
 			 * @param {object} block
 			 * @return {boolean}
 			 */
-			static isBlockHeadValid (block) { return Block.isDifficultValid(block) && Block.isBlockHashValid(block) && Block.isSignValid(block); }
+			static isBlockHeadValid (block) { return Block.isDifficultValid(block) && Block.isBlockHashValid(block) && Block.isSignValid(block) && Block.isMinerValid(block); }
 
 			/**
 			 * Check blocks difficulty
@@ -217,10 +220,30 @@ module.exports = (Storage,Bus) => {
 			 * @return {boolean}
 			 */
 			static isMrklHashValid(mrkl_hash, txs) { return mrkl_hash === Block.calcMrklHash(txs); }
+			
+			/**
+			 * Check if the miner is registerd
+			 *
+			 * @param {object} block
+			 * @return {boolean}
+			 */
+			static isMinerValid (block) {
+				if (block.index === 0) {
+					for (let transaction of block.txs) {
+						transaction = Storage.call('Transaction.decode',transaction);
+						if (transaction.name === 'Transaction.MinerPermission' && block.publicKey === transaction.publicKey && Storage.call('Transaction.MinerPermission.verify', transaction+''))
+							return true;
+					}
+					return false;
+				} else {
+					let address = Storage.get('Wallet.address');
+					return Storage.get(`ChainState.${address}.miner`) === true && Storage.get(`ChainState.${address}.miner.birthIndex`) === block.birthIndex;
+				}
+			}
 	};
-		Block.full_block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce,hash,sign,txs".split(",");
-		Block.block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce,hash,sign".split(",");
-		Block.hash_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,publicKey,nonce".split(",");
+		Block.full_block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,birthIndex,publicKey,nonce,hash,sign,txs".split(",");
+		Block.block_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,birthIndex,publicKey,nonce,hash,sign".split(",");
+		Block.hash_properties = "index,version,prev_hash,mrkl_hash,txsCount,txsSize,timestamp,birthIndex,publicKey,nonce".split(",");
 
 		Storage.set('Block',Block);
 		Storage.set('Block.create', (...args) => new Block(...args)+"");
@@ -234,9 +257,5 @@ module.exports = (Storage,Bus) => {
 
 		Storage.set('Block.calcBlockHash', Block.calcBlockHash);
 		Storage.set('Block.calcMrklHash', Block.calcMrklHash);
-		
-	Bus.on('init', () => {
-
-	});
 };
 module.exports.version = 2;

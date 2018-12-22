@@ -12,12 +12,16 @@ module.exports = (Storage,Bus) => {
 		addTransactions (transactions) {
 			let beforeSize = this.pool.length;
 			for (let transaction of transactions) {
-				if (transaction === "padding")				continue;
-				if (this.pool.indexOf(transaction) >= 0)	continue;
-				if (!Transaction.verify(transaction))		continue;
+				if (transaction === "padding")							continue;
+				if (this.pool.indexOf(transaction) >= 0)				continue;
+				if (!Storage.call('Transaction.verify',transaction))	continue;
+				if (Storage.call('Transaction.Transmisson.isPublishTransaction', transaction)) continue;
 
 				this.pool.push(transaction);
 			}
+
+			if (beforeSize !== this.pool.length)
+				Bus.emit('TransactionPool.onupdate');
 			return beforeSize !== this.pool.length
 		},
 
@@ -30,7 +34,10 @@ module.exports = (Storage,Bus) => {
 		removeTransactions (transactions) {
 			let beforeSize = this.pool.length;
 			this.pool = this.pool.filter(transaction => transactions.indexOf(transaction) < 0);
-			return beforeSize !== this.pool.length
+
+			if (beforeSize !== this.pool.length)
+				Bus.emit('TransactionPool.onupdate');
+			return beforeSize !== this.pool.length;
 		},
 	};
 		
@@ -50,8 +57,8 @@ module.exports = (Storage,Bus) => {
 	};
 
 	Storage.set('TransactionPool.transactions', () => [...TransactionPool.pool]);
-	Storage.set('TransactionPool.addTransactions', TransactionPool.addTransactions.bind(this));
-	Storage.set('TransactionPool.removeTransactions', TransactionPool.removeTransactions.bind(this));
+	Storage.set('TransactionPool.addTransactions', TransactionPool.addTransactions.bind(TransactionPool));
+	Storage.set('TransactionPool.removeTransactions', TransactionPool.removeTransactions.bind(TransactionPool));
 
 	Bus.once('init', () => {
 		//Transaction
