@@ -66,6 +66,7 @@ module.exports = (Storage,Bus) => {
 				this.timestamp = Date.now();
 				this.txs = txs;
 
+				//this.birthIndex = 0;
 				this.publicKey = Storage.get('Wallet.publicKey');
 				this.nonce = 0;
 
@@ -73,6 +74,9 @@ module.exports = (Storage,Bus) => {
 				this.sign = "";
 
 				this.block = false;
+
+				//if (index > 0)
+				//	this.birthIndex = Storage.get(`ChainState.${Storage.get('Wallet.address')}.mine.index`);
 			}
 
 			mine (nonce) {
@@ -88,16 +92,25 @@ module.exports = (Storage,Bus) => {
 
 	Bus.on('init-end', () => {
 		let transaction = Storage.call('Transaction.Transmisson.create', util.zeros64, Storage.get('Wallet.address'), 100);
-		Mine.mineGenesis([transaction]);
+		Mine.mineGenesis([transaction,...Storage.call('TransactionPool.transactions')]);
 
 		Bus.on('Chain.onupdate',() => {
 			let transaction = Storage.call('Transaction.Transmisson.create', util.zeros64, Storage.get('Wallet.address'), 100);
-			Mine.mineNextBlock( Storage.call('Chain.topBlock'), [transaction, ...Storage.call('TransactionPool.transactions')] );
+			let transactions = [transaction, ...Storage.call('TransactionPool.transactions')]
+
+			if (Storage.call('Chain.topBlock'))	Mine.mineNextBlock( Storage.call('Chain.topBlock'), transactions );
+			else								Mine.mineGenesis(transactions);
 		});
 
-		Bus.once('Mine.start', () => {
-			Mine.miningLoop();
+		Bus.on('TransactionPool.onupdate', () => {
+			let transaction = Storage.call('Transaction.Transmisson.create', util.zeros64, Storage.get('Wallet.address'), 100);
+			let transactions = [transaction, ...Storage.call('TransactionPool.transactions')]
+
+			if (Storage.call('Chain.topBlock'))	Mine.mineNextBlock( Storage.call('Chain.topBlock'), transactions );
+			else								Mine.mineGenesis(transactions);
 		});
+
+		Bus.once('Mine.start', () => Mine.miningLoop());
 	});
 };
 module.exports.version = 2;

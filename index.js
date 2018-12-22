@@ -26,12 +26,15 @@ if ( process.argv[2] ) {
 	Storage.set('ENV.HttpServer.port', 8001);
 }
 
-let sctipts = ['./socketServer.js','./peerPool.js','./protocol.js','./wallet.js','./transaction.js','./transactionPool.js','./block.js','./chain.js','./mine.js'];
+let sctipts = ['./socketServer.js','./peerPool.js','./protocol.js','./wallet.js','./transaction.js','./transactionPool.js','./block.js','./chain.js','./chainState.js','./mine.js'];
 for (let script of sctipts)
 	require(script)(Storage,Bus);
 
 Bus.once('init', () => Bus.emit('init-end'));
 Bus.once('init-end', () => {
+	
+	Storage.set('Transaction.myMinerPermissionTransaction', Storage.call('Transaction.MinerPermission.create'));
+	Storage.call('TransactionPool.addTransactions',[Storage.get('Transaction.myMinerPermissionTransaction')]);
 
 	Bus.on('Mine.onmine', block => {
 		Storage.call('Chain.newChain', [block]);
@@ -39,9 +42,12 @@ Bus.once('init-end', () => {
 		console.log('Mine.onmine', block.index, block.hash.substr(0,8));
 	});
 
-	Bus.on('Chain.onupdate', () => {
+	Bus.on('Chain.onupdate', (data) => {
 		let block = Storage.call('Chain.topBlock');
 		Bus.emit('Protocol.broadcast', 'Chain.BroadCast');
+
+		Storage.call('TransactionPool.removeTransactions',data.addedTransactions);
+		Storage.call('TransactionPool.addTransactions',data.removedTransactions);
 
 		console.log('Chain.onupdate', block.index, block.hash.substr(0,8));
 	});
@@ -50,6 +56,7 @@ Bus.once('init-end', () => {
 	Bus.on('connected', addr => {
 		Bus.emit('Protocol.send', addr, 'Peers.Request');
 		Bus.emit('Protocol.send', addr, 'Chain.Request');
+		Bus.emit('Protocol.send', addr, 'Transaction.Request');
 
 		if (Storage.call('Chain.chain').length)
 			Bus.emit('Protocol.Chain.BroadCast');

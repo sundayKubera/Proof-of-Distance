@@ -18,6 +18,6 @@ function spawnIndex (i) {
 spawnIndex(0);
 
 setTimeout(e => {
-	for (let i=1; i<9; i++)
+	for (let i=1; i<2; i++)
 		spawnIndex(i);
 },1000);

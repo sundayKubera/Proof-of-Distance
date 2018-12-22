@@ -1,8 +1,8 @@
 const STORAGE = {};
 
 class Stroage {
-	constructor (nameSpace="") {
-		this.nameSpace = nameSpace ? nameSpace+"." : "";
+	constructor (nameSpace="global") {
+		this.nameSpace = nameSpace != 'global' ? nameSpace+"." : "";
 	}
 
 	/**
@@ -50,7 +50,7 @@ class Stroage {
 	getNameSpace (nameSpace='global') {
 		if (nameSpace == 'global')
 			return new Stroage();
-		return new Stroage(this.nameSpace+"."+nameSpace);
+		return new Stroage(this.nameSpace+nameSpace);
 	}
 
 	call (name, ...args) {

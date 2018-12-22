@@ -187,7 +187,7 @@ module.exports = (Storage,Bus) => {
 
 			setTimeout(() => {
 				if (result)
-					Bus.emit('Chain.onupdate');
+					Bus.emit('Chain.onupdate', result);
 			},100);
 
 			return result;
@@ -210,8 +210,8 @@ module.exports = (Storage,Bus) => {
 		};
 
 	Bus.on('init', () => {
-		Storage.set('Chain.chain', () => [...Chain.chain]);
-		Storage.set('Chain.topBlock', () => Chain.chain[Chain.chain.length-1]);
+		Storage.set('Chain.chain', () => Chain.blocks());
+		Storage.set('Chain.topBlock', () => Chain.topBlock);
 		Storage.set('Chain.newChain', Chain.newChain.bind(Chain));
 
 		//Chain
