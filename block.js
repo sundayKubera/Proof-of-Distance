@@ -128,7 +128,10 @@ module.exports = (Storage,Bus) => {
 			static calcDifficulty (prev_hash, walletAddress) {
 				if (prev_hash.replace(/0/gi,"").length == 0)	return 4;
 				
-				let difficulty = util.Coord.distance(util.Coord(prev_hash), util.Coord(walletAddress));
+				let difficulty = util.Coord.distance(
+					util.Coord(prev_hash),
+					util.Coord(Storage.get(`ChainState.${walletAddress}.miner.name`))
+				);
 				//return Math.sqrt(difficulty)/33333 /199 /40 /28;
 
 				for (let i=0; i<5; i++)	difficulty = Math.sqrt(difficulty);
