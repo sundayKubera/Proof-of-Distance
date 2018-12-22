@@ -191,6 +191,7 @@ module.exports = (Storage,Bus) => {
 			Storage.set(`ChainState.${transaction.address}.miner.hash`, transaction.hash);
 			Storage.set(`ChainState.${transaction.address}.miner.birthHash`, Storage.get('ChainState.block').hash);
 			Storage.set(`ChainState.${transaction.address}.miner.birthIndex`, Storage.get('ChainState.block').index);
+			Storage.set(`ChainState.${transaction.address}.miner.name`, util.sha256(Storage.get('ChainState.block').hash+transaction.hash));
 		}
 	};
 
@@ -208,6 +209,5 @@ module.exports = (Storage,Bus) => {
 		Storage.call('Transaction.Builder.register', 'Transmisson', TransmissionBuilder);
 		Storage.call('Transaction.Builder.register', 'MinerPermission', MinerPermissionBuilder);
 	});
-
 };
 module.exports.version = 2;
