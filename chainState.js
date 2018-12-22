@@ -50,8 +50,12 @@ module.exports = (Storage, Bus) => {
 
 	Bus.on('init', () => {
 		Bus.on('Chain.onupdate', () => {
-			ChainState.removeAll();
-			ChainState.addBlocks(Storage.call('Chain.chain'));
+			try {
+				ChainState.removeAll();
+				ChainState.addBlocks(Storage.call('Chain.chain'));
+			} catch (e) {
+				console.error(e);
+			}
 		});
 	});
 };

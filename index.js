@@ -13,7 +13,7 @@ let ip = (() => {
 
 	return ips;
 })()[0];
-
+Bus.setMaxListeners(100); 
 Storage.set('ENV.SocketServer.host', ip);
 
 if ( process.argv[2] ) {
