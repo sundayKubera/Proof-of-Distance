@@ -14,7 +14,8 @@ choose the smallest block<br/>
 2. add distance calc to block(Done)
 3. add Comment(it's too dirty)(Done)
 4. rebuild whole system(it's too dirty too)(Done, is it more dirty???)
-5. add code update transaction
+5. add policy update transaction(like 'block difficulty calculating' or 'chain choose')
+6. add code update transaction
 
 ### Old System
 	+------------------\-------------------\----------------+-+

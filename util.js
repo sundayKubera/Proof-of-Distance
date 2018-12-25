@@ -19,7 +19,7 @@ module.exports.sha256 = sha256;
 /**
  * Calc Vector from Hash String
  *
- * @param {stirng} hash		:  0000000000000000 00000000 00000000 00000000 00000000 00000000 00000000  <- hex string
+ * @param {stirng} hash		:  0123456789abcdef 12345678 12345678 12345678 12345678 12345678 12345678  <- hex string
  * @param {int[]} structure	: |       16       |   8    |   8    |   8    |   8    |   8    |   8    | <- like this
  * @return {int[]} : vector
  */
