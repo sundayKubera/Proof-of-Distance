@@ -26,14 +26,14 @@ choose the smallest block<br/>
 1. improve chain choose algorithm(Done)
 2. add distance calc to block(Done)
 3. add Comment(it's too dirty)(Done)
-4. rebuild whole system(it's too dirty too)(Done, is it more dirty???)
-?. add multiple chain support(one chain one wallet)
-?. add 'delegate miner node name' transaction and mining system(some node can delegate 'miner node name' to random node optionally(it can be cancel))
-?. add policy update transaction(like 'block difficulty calculating' or 'chain choose')
-?. add code update transaction
-?. add vote to minging system
-?. add limit to node name's lifetime(automatically reissue)
-?. add police node to minging system(if node name's first char is '0' then it's police node(6.25%))
+4. rebuild whole system(it's too dirty too)(Done, is it more dirty???)<br/>
+?. add multiple chain support(one chain one wallet)<br/>
+?. add 'delegate miner node name' transaction and mining system(some node can delegate 'miner node name' to random node optionally(it can be cancel))<br/>
+?. add policy update transaction(like 'block difficulty calculating' or 'chain choose')<br/>
+?. add code update transaction<br/>
+?. add vote to minging system<br/>
+?. add limit to node name's lifetime(automatically reissue)<br/>
+?. add police node to minging system(if node name's first char is '0' then it's police node(6.25%))<br/>
 ?. add google account(?) verify to be a miner(one account one miner)
 
 ### Current System
